@@ -1,8 +1,19 @@
-lib := "./exmeteo/"
-files := "{{lib}}" / "gui.c"
-
 default:
   just --list
 
-build name:
-  gcc -O3 -o {{name}} main.c 
+compile name="exmeteo":
+  scripts/build.sh -c {{name}}
+
+link name="exmeteo":
+  scripts/build.sh -l {{name}}
+
+build name="exmeteo":
+  just compile {{name}}
+  just link {{name}}
+  mv out/{{name}} .
+
+run name="exmeteo":
+  just compile {{name}}
+  just link {{name}}
+  mv out/{{name}} .
+  ./{{name}}

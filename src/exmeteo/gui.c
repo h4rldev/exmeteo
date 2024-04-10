@@ -1,5 +1,5 @@
 #include "gui.h"
 
 char *hello(void) {
-  return "Hello, World \0";
+  return "Hello, World";
 }

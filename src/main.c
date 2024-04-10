@@ -7,10 +7,9 @@ int main(int argc, char **argv) {
   
   num1 = 2;
   num2 = 3;
-  
-
-  printf("%s", hello());
-  
+  printf("%d\n", argc);
+  puts(*argv);
+  puts(hello());
 
   return 0;
 }
