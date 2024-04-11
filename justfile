@@ -7,13 +7,16 @@ compile name="exmeteo":
 link name="exmeteo":
   scripts/build.sh -l {{name}}
 
-build name="exmeteo":
+@build name="exmeteo":
+  echo "Compiling.."
   just compile {{name}}
+  echo "Linking.."
   just link {{name}}
-  mv out/{{name}} .
 
-run name="exmeteo":
+@run name="exmeteo":
+  echo "Compiling.."
   just compile {{name}}
+  echo "Linking.."
   just link {{name}}
-  mv out/{{name}} .
-  ./{{name}}
+  echo "Running!"
+  ./bin/{{name}}
