@@ -7,14 +7,15 @@ __DESCRIPTION__="Compiles & Links, exmeteo to a executable."
 __VERSION__="0.0.1"
 
 
-LINKER_FLAGS="-lm -lglfw -lvulkan"
-
-
 SRC="$(pwd)/src"
 OUT="$(pwd)/out"
 BIN="$(pwd)/bin"
 DIR="${SRC}/exmeteo"
+INCLUDE="$(pwd)/include"
 FONT_FOLDER="${SRC}/fonts"
+
+CFLAGS=$(pkg-config --cflags gtk+-3.0)
+LINKER_FLAGS=$(pkg-config --libs gtk+-3.0)
 
 if [[ ! -d ${OUT} ]]; then
   mkdir ${OUT}
@@ -42,16 +43,12 @@ compile() {
   local -a TRIMMED_FONT_FILENAMES
 
   local RECOMPILE
+  local RECONVERT
   local TRIMMED_C_FILE
   local TRIMMED_FONT_FILE
   local TRIMMED_C_FILENAME
   local TRIMMED_FONT_FILENAME
   local OBJECT_NAME
-
-
-  if [[ -s "${OUT}" ]]; then
-    rm -fr ${OUT}/*.o
-  fi
 
   if [[ -n ${1} ]]; then 
     OBJECT_NAME="${1}"
@@ -71,10 +68,10 @@ compile() {
     if [[ -f "${OUT}/${TRIMMED_C_FILENAME}.o" ]]; then
       echo -ne "${TRIMMED_C_FILENAME}.o seems to already exist, you wanna recompile it? [Y/n] "; read RECOMPILE
       if [[ "${RECOMPILE}" != [Nn] ]]; then
-        gcc -O3 -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+        gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
       fi
     else 
-      gcc -O3 -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+      gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
     fi
   done
 
@@ -85,9 +82,9 @@ compile() {
     TRIMMED_FONT_FILENAMES+=("${TRIMMED_FONT_FILENAME}")
 
     echo "Making ${FONTS[${i}]} into object.."
-    if [[ -f "${OUT}/${TRIMMED_FILENAME}.o" ]]; then
-      echo -ne "${TRIMMED_FILENAME}.o seems to already exist, you wanna reconvert it? [Y/n] "; read RECOMPILE
-      if [[ "${RECOMPILE}" != [Nn] ]]; then
+    if [[ -f "${OUT}/${TRIMMED_FONT_FILENAME}.o" ]]; then
+      echo -ne "${TRIMMED_FONT_FILENAME}.o seems to already exist, you wanna reconvert it? [Y/n] "; read RECONVERT
+      if [[ "${RECONVERT}" != [Nn] ]]; then
         ld -r -b binary -o "${OUT}/${TRIMMED_FONT_FILENAME}.o" "${FONTS[${i}]}"
       fi
     else 
@@ -96,7 +93,7 @@ compile() {
   done
 
   echo "Compiling: main.c.."
-  gcc -O3 -c "${SRC}/main.c" -o "${OUT}/${OBJECT_NAME}.o"
+  gcc -O3 ${CFLAGS} -c "${SRC}/main.c" -o "${OUT}/${OBJECT_NAME}.o"
 
   echo "Compiled ${TRIMMED_C_FILENAMES[@]} & ${OBJECT_NAME} successfully"
   echo "Converted fontfiles: ${TRIMMED_FONT_FILENAMES[@]} to binaries successfully"
@@ -129,16 +126,16 @@ link() {
   if [[ -f ${EXECUTABLE_NAME} ]]; then
     echo -ne "${EXECUTABLE_NAME} seems to already exist, you wanna relink it? [Y/n] "; read RELINK
     if [[ "${RELINK}" != [Nn] ]]; then
-      gcc -o "${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} $LINKER_FLAGS
+      gcc ${CFLAGS} -o "${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
     fi
   else
-    gcc -o "${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} $LINKER_FLAGS
+    gcc ${CFLAGS} -o "${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
   fi
 
-  popd > /dev/null
-  
   echo "Linked ${TRIMMED_FILES} successfully"
   mv "${EXECUTABLE_NAME}" "${BIN}"
+
+  popd > /dev/null
 }
 
 

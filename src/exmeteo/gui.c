@@ -1,57 +1,62 @@
-// builtin
-#include <stdio.h>
-
-// nuklear
-#define NK_IMPLEMENTATION
-#define NK_INCLUDE_FONT_BAKING
-#define NK_INCLUDE_DEFAULT_FONT
-#define NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_STANDARD_IO
-#include "../../include/nuklear.h"
-
 // homemade
-#include "vk.h"
 #include "gui.h"
-
+#include <gtk/gtk.h>
+#include <stdlib.h>
 // macros
-#define MAX_MEMORY 1024 * 1024
-
-int test(void) {
-  int glfw_initialization = init_glfw();
- 
-  if (!glfw_initialization) {
-    error_handler(1, "Failed to initialize GLFW & Vulkan");
-    return 1;
-  }
-
-  GLFWwindow *window = glfwCreateWindow(800, 600, "Vulkan", NULL, NULL);
-
-  if (!window) {
-    error_handler(3, "Failed to create a GLFWwindow..");
-    glfwTerminate();
-    return -1;
-  }
-  /* init gui state */
-  window_init(window);
-  puts("Window successfully(?) initialized");
 
 
-  struct nk_font_atlas atlas;
-  nk_font_atlas_init_default(&atlas);
-  nk_font_atlas_begin(&atlas);
 
-  extern const char _binary_font_ttf_start[];
-  extern const char _binary_font_ttf_end[];
-  size_t font_size = _binary_font_ttf_end - _binary_font_ttf_start;
-  nk_font_atlas_add_from_memory(&atlas, _binary_font_ttf_start, font_size, 14, 0);
+static void print_hello(GtkWidget *widget, gpointer data) {
+    g_print("Hello World\n");
+}
 
-  const void* image; int w, h;
-  image = nk_font_atlas_bake(&atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
+static void exec(GtkWidget *widget, gpointer data) {
+    const char *command = (const char *)data;
+    system(command);
+}
 
-  struct nk_context ctx;
-  nk_init_default(&ctx, const struct nk_user_font *)
+static void on_response(GtkDialog *dialog, gint response_id, gpointer user_data) {
+    switch (response_id) {
+        case GTK_RESPONSE_OK:
+            g_print("OK button clicked\n");
+            break;
+        case GTK_RESPONSE_CANCEL:
+            g_print("Cancel button clicked\n");
+            break;
+        default:
+            g_print("Unknown button clicked\n");
+            break;
+    }
+    gtk_widget_destroy(GTK_WIDGET(dialog));
+}
 
-  return 0;
+static void activate(GtkApplication *app, gpointer user_data) {
+  GtkWidget *window;
+  GtkWidget *dialog;
+
+
+  window = gtk_application_window_new(app);
+  dialog = gtk_dialog_new();
+  
+  gtk_dialog_add_button(GTK_DIALOG(dialog), "OK", GTK_RESPONSE_OK);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), "Cancel", GTK_RESPONSE_CANCEL);  gtk_window_set_default_size(GTK_WINDOW(dialog), 200, 100);
+  gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER); 
+
+    //g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_widget_destroy), window);
+  g_signal_connect(dialog, "response", G_CALLBACK(on_response), NULL);
+  gtk_widget_show_all(dialog);
+}
+
+int test(int argc, char **argv) {
+  GtkApplication *app;
+  int status;
+
+  app = gtk_application_new("org.gtk.example", G_APPLICATION_DEFAULT_FLAGS);
+  g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
+  status = g_application_run(G_APPLICATION(app), argc, argv);
+  g_object_unref(app);
+
+  return status;
 }
 
 
