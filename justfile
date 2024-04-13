@@ -13,10 +13,10 @@ link name="exmeteo":
   echo "Linking.."
   just link {{name}}
 
-@run name="exmeteo":
+@run name="exmeteo" args="":
   echo "Compiling.."
   just compile {{name}}
   echo "Linking.."
   just link {{name}}
   echo "Running!"
-  ./bin/{{name}}
+  ./bin/{{name}} {{args}}

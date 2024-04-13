@@ -1,9 +1,6 @@
 // homemade
 #include "gui.h"
-#include <gtk/gtk.h>
-#include <stdlib.h>
 // macros
-
 
 
 static void print_hello(GtkWidget *widget, gpointer data) {
@@ -28,6 +25,7 @@ static void on_response(GtkDialog *dialog, gint response_id, gpointer user_data)
             break;
     }
     gtk_widget_destroy(GTK_WIDGET(dialog));
+    g_application_quit(G_APPLICATION(user_data));
 }
 
 static void activate(GtkApplication *app, gpointer user_data) {
@@ -43,7 +41,7 @@ static void activate(GtkApplication *app, gpointer user_data) {
   gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER); 
 
     //g_signal_connect_swapped(button, "clicked", G_CALLBACK(gtk_widget_destroy), window);
-  g_signal_connect(dialog, "response", G_CALLBACK(on_response), NULL);
+  g_signal_connect(dialog, "response", G_CALLBACK(on_response), app);
   gtk_widget_show_all(dialog);
 }
 

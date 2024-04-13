@@ -1,18 +1,53 @@
 #!/usr/bin/env bash
 
+# ExMeteo Build script
+#
+# built with the inspirational message: Why tf would I use make
+#
+# Licensed under the:
+# BSD 3-Clause License
+#
+# Copyright (c) 2024, H4rl
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# Made with <3 by h4rl.
+
 shopt -s nullglob
 
 __NAME__="EXMeteo build script"
-__DESCRIPTION__="Compiles & Links, exmeteo to a executable."
+__DESCRIPTION__="Compiles & Links to a executable."
 __VERSION__="0.0.1"
-
 
 SRC="$(pwd)/src"
 OUT="$(pwd)/out"
 BIN="$(pwd)/bin"
 DIR="${SRC}/exmeteo"
 INCLUDE="$(pwd)/include"
-FONT_FOLDER="${SRC}/fonts"
 
 CFLAGS=$(pkg-config --cflags gtk+-3.0)
 LINKER_FLAGS=$(pkg-config --libs gtk+-3.0)
@@ -35,12 +70,9 @@ print_help() {
 
 compile() {
   local -a C_FILES
-  local -a FONTS
   
   local -a TRIMMED_C_FILES
-  local -a TRIMMED_FONT_FILES
   local -a TRIMMED_C_FILENAMES
-  local -a TRIMMED_FONT_FILENAMES
 
   local RECOMPILE
   local RECONVERT
@@ -56,7 +88,6 @@ compile() {
     OBJECT_NAME="exmeteo"
   fi 
 
-  mapfile -t FONTS < <(find "${FONT_FOLDER}" -type f -name "*.ttf")
   mapfile -t C_FILES < <(find "${DIR}" -type f -name "*.c")
 
   for ((i=0; i<${#C_FILES[@]}; i++)); do
@@ -75,28 +106,10 @@ compile() {
     fi
   done
 
-  for ((i=0; i<${#FONTS[@]}; i++)); do
-    TRIMMED_FONT_FILE="${FONTS[${i}]%.*}"
-    TRIMMED_FONT_FILENAME="${TRIMMED_FONT_FILE##*/}"
-    TRIMMED_FONT_FILES+=("${TRIMMED_FONT_FILE}")
-    TRIMMED_FONT_FILENAMES+=("${TRIMMED_FONT_FILENAME}")
-
-    echo "Making ${FONTS[${i}]} into object.."
-    if [[ -f "${OUT}/${TRIMMED_FONT_FILENAME}.o" ]]; then
-      echo -ne "${TRIMMED_FONT_FILENAME}.o seems to already exist, you wanna reconvert it? [Y/n] "; read RECONVERT
-      if [[ "${RECONVERT}" != [Nn] ]]; then
-        ld -r -b binary -o "${OUT}/${TRIMMED_FONT_FILENAME}.o" "${FONTS[${i}]}"
-      fi
-    else 
-      ld -r -b binary -o "${OUT}/${TRIMMED_FONT_FILENAME}.o" "${FONTS[${i}]}"
-    fi
-  done
-
   echo "Compiling: main.c.."
-  gcc -O3 ${CFLAGS} -c "${SRC}/main.c" -o "${OUT}/${OBJECT_NAME}.o"
+  gcc -O3 ${CFLAGS} -c "${SRC}/main.c" -o "${OUT}/main.o"
 
-  echo "Compiled ${TRIMMED_C_FILENAMES[@]} & ${OBJECT_NAME} successfully"
-  echo "Converted fontfiles: ${TRIMMED_FONT_FILENAMES[@]} to binaries successfully"
+  echo "Compiled ${TRIMMED_C_FILENAMES[@]} & main successfully"
 }
 
 
@@ -138,12 +151,39 @@ link() {
   popd > /dev/null
 }
 
+clean_dangling() {
+  local DIR1
+  local DIR2
+  local FILE
+  local LINE
+
+  DIR1=${DIR}
+  DIR2=${OUT}
+
+  # Extract .c and .o filenames without paths and store them in temporary files
+  find "$DIR1" -name "*.c" -exec basename {} \; > "temp_dir1_files.txt"
+  find "$DIR2" -name "*.o" -exec basename {} \; > "temp_dir2_files.txt"
+  echo "main.c" >> "temp_dir1_files.txt"
+
+  # Compare the lists and find .o files in dir2 that do not have a corresponding .c file in dir1
+  grep -Fxv -f <(sed 's/\.c$/.o/' "temp_dir1_files.txt") "temp_dir2_files.txt" > extra_o_files.txt
+
+  # Remove extra .o files from dir2
+  while read -r LINE; do
+    rm -f "${DIR2}/${LINE}"
+  done < extra_o_files.txt
+
+  # Cleanup
+  rm temp_dir1_files.txt temp_dir2_files.txt extra_o_files.txt
+}
+
 
 case $1 in
   "-c" | "--compile")
     compile $2
   ;;
   "-l" | "--link")
+    clean_dangling
     link $2
   ;;
   * | "--help" | "-h" | "-?")
