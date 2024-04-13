@@ -3,22 +3,43 @@
 
 #ifdef _WIN32
   #include <windows.h>
-  void getUsername(char result[]) {
-    char username[1024];
-    DWORD username_len = 1024;
+  char* getUsername() {
+    char username[UNLEN + 1];
+    DWORD username_len = UNLEN +1;
+   
     GetUserNameA(username, &username_len);
-    result = username;
+
+    result = (char*)malloc((strlen(username)) * sizeof(char));
+    if (result == NULL) {
+      fprintf(stderr, "Can't allocate memory for username, exiting..");
+      free(result);
+      return NULL;
+    }
+    
+    strncpy(result, username);
+    return result;
   }
 #elif __linux__
   #include <unistd.h>
-  void getUsername(char *result) {
-    char username[1024];
-    if (getlogin_r(username, sizeof(username)) == 0) {
-      result = username;
-    } else {
-      fprintf(stderr, "Error: Couldn't get username.");
-      result = "user";
+  char *getUsername() {
+    char username[32];
+    char *result = NULL; 
+    result = (char*)malloc((strlen(username) + 1) * sizeof(char));
+    if (result == NULL) {
+      fprintf(stderr, "Can't allocate memory for username, exiting..");
+      free(result);
+      return NULL;
     }
+
+    if (getlogin_r(username, sizeof(username)) != 0) {
+      fprintf(stderr, "Error: Couldn't get username.");
+      strncpy(result, "user", 32);
+      return result;
+    };
+    
+    strncpy(result, username, 32);
+
+    return result;
   }
 #else
   #error "Unsupported Operating System, use a normal os, loser"
@@ -34,7 +55,7 @@ const char* flags[5] = {
 };
 
 
-void compare_flags(int argc, char **argv, char *result[]) {
+int compare_flags(int argc, char **argv, char *result[]) {
   int arraySize = sizeof(flags) / sizeof(flags[0]);
 
   for (int i = 1; i < argc; i++) {
@@ -47,16 +68,22 @@ void compare_flags(int argc, char **argv, char *result[]) {
       }
     }
   }
+  
+  if (result[0] == NULL) {
+    fprintf(stderr, "Error: No flags found.\n");
+    return 1;
+  }
+
+  return 0; 
 }
 
 
 
 int init(int argc, char **argv) {
-  char* user;
-  getUsername(user);
-  printf("Welcome to the EXMeteo CLI %s", user);
-
-  char *processed_flags[5] = {NULL};
+  char* user = getUsername();
+  printf("Welcome to the EXMeteo CLI %s\n", user);
+  free(user);
+  char *processed_flags[6] = {NULL};
   compare_flags(argc, argv, processed_flags);
   for(int i = 1; i < 5; i++) {
     if (processed_flags[i] != NULL) {

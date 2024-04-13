@@ -2,7 +2,7 @@
 
 # ExMeteo Build script
 #
-# built with the inspirational message: Why tf would I use make
+# built with this inspirational message in mind: Why tf would I use make
 #
 # Licensed under the:
 # BSD 3-Clause License
