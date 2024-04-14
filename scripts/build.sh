@@ -39,15 +39,27 @@
 
 shopt -s nullglob
 
-__NAME__="EXMeteo build script"
-__DESCRIPTION__="Compiles & Links to a executable."
-__VERSION__="0.0.1"
+__NAME__="exMeteo: build.sh"
+__AUTHOR__="h4rl"
+__DESCRIPTION__="Compiles & links exMeteo into a executable."
+__LICENSE__="BSD 3-Clause License"
+__VERSION__="0.1.0"
 
 SRC="$(pwd)/src"
 OUT="$(pwd)/out"
 BIN="$(pwd)/bin"
 DIR="${SRC}/exmeteo"
 INCLUDE="$(pwd)/include"
+COLOR=true
+
+if ${COLOR}; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[1;33m'
+  BLUE='\033[0;34m'
+  CYAN='\033[0;36m'
+  CLEAR='\033[0m'
+fi
 
 CFLAGS=$(pkg-config --cflags gtk+-3.0)
 LINKER_FLAGS=$(pkg-config --libs gtk+-3.0)
@@ -57,14 +69,16 @@ if [[ ! -d ${OUT} ]]; then
 fi
 
 print_help() {
-  echo -e "${__NAME__} v${__VERSION__} \n"
-  echo -e "Usage:"
-  echo -e "\"-c\" | \"--compile\" ++ [OPTIONAL NAME] \\"
-  echo -e "Compiles main.c to [OPTIONAL NAME].o aswell as all c files in the exmeteo subfolder.\n"
-  echo -e "\"-l\" | \"--link\"    ++ [OPTIONAL NAME] \\"
-  echo -e "Links all the files in \"${OUT}\" to a executable with [OPTIONAL NAME] \n"
-  echo -e "[OPTIONAL NAME] default: exmeteo"
-  echo -e "Made with <3 by h4rl"
+  echo -e "${RED}${__NAME__}${CLEAR} v${GREEN}${__VERSION__}${CLEAR}"
+  echo -e "Licensed under: ${CYAN}${__LICENSE__}${CLEAR}\n"
+  echo -e "USAGE: ${GREEN}${0}${CLEAR} ${RED}{FLAGS} ${BLUE}{EXECUTABLE_NAME}${CLEAR}"
+  echo -e "${RED}-c${CLEAR} | ${RED}--compile${CLEAR}"
+  echo -e "Compiles ${CYAN}${SRC}/main.c${CLEAR} & all files in ${CYAN}${DIR}/${CLEAR}.\n"
+  echo -e "${RED}-l${CLEAR} | ${RED}--link${CLEAR}"
+  echo -e "Links all the files in ${CYAN}${OUT}/${CLEAR} to an executable with ${BLUE}{EXECUTABLE_NAME}${CLEAR}\n"
+  echo -e "${RED}-d${CLEAR} | ${RED}--delete${CLEAR} | ${RED}--clean${CLEAR}"
+  echo -e "Cleans all files in ${CYAN}${BIN}/${CLEAR} & ${CYAN}${OUT}/${CLEAR}\n"
+  echo -e "Made with ${RED}<3${CLEAR} by ${__AUTHOR__}"
 }
 
 
@@ -75,18 +89,8 @@ compile() {
   local -a TRIMMED_C_FILENAMES
 
   local RECOMPILE
-  local RECONVERT
   local TRIMMED_C_FILE
-  local TRIMMED_FONT_FILE
   local TRIMMED_C_FILENAME
-  local TRIMMED_FONT_FILENAME
-  local OBJECT_NAME
-
-  if [[ -n ${1} ]]; then 
-    OBJECT_NAME="${1}"
-  else 
-    OBJECT_NAME="exmeteo"
-  fi 
 
   mapfile -t C_FILES < <(find "${DIR}" -type f -name "*.c")
 
@@ -95,10 +99,10 @@ compile() {
     TRIMMED_C_FILENAME="${TRIMMED_C_FILE##*/}"
     TRIMMED_C_FILES+=("${TRIMMED_C_FILE}")
     TRIMMED_C_FILENAMES+=("${TRIMMED_C_FILENAME}")
-    echo "Compiling: ${C_FILES[${i}]}.."
+    echo -e "${BLUE}>${CLEAR} Compiling: ${CYAN}${C_FILES[${i}]}${CLEAR}.."
     if [[ -f "${OUT}/${TRIMMED_C_FILENAME}.o" ]]; then
-      echo -ne "${TRIMMED_C_FILENAME}.o seems to already exist, you wanna recompile it? [Y/n] "; read RECOMPILE
-      if [[ "${RECOMPILE}" != [Nn] ]]; then
+      echo -ne "${YELLOW}!${CLEAR} ${CYAN}${TRIMMED_C_FILENAME}.o${CLEAR} seems to already exist, you wanna recompile it? [${GREEN}Y${CLEAR}/${RED}n${CLEAR}]: "; read RECOMPILE
+      if [[ ! "${RECOMPILE}" =~ [Nn] ]]; then
         gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
       fi
     else 
@@ -106,10 +110,10 @@ compile() {
     fi
   done
 
-  echo "Compiling: main.c.."
+  echo -e "${BLUE}>${CLEAR} Compiling: main.c.."
   gcc -O3 ${CFLAGS} -c "${SRC}/main.c" -o "${OUT}/main.o"
 
-  echo "Compiled ${TRIMMED_C_FILENAMES[@]} & main successfully"
+  echo -e "${GREEN}✓${CLEAR} Compiled ${CYAN}${TRIMMED_C_FILENAMES[@]}${CLEAR} & ${CYAN}main${CLEAR} successfully"
 }
 
 
@@ -125,7 +129,8 @@ link() {
 
   if [[ -n ${1} ]]; then 
     EXECUTABLE_NAME="${1}"
-  else 
+  else
+    echo -e "${RED}!!${CLEAR} No executable name set, using default."
     EXECUTABLE_NAME="exmeteo"
   fi 
 
@@ -134,20 +139,18 @@ link() {
   
   pushd ${OUT} > /dev/null
 
-  echo "Linking ${TRIMMED_FILES[*]}.."
+  echo -e "${BLUE}>${CLEAR} Linking: ${CYAN}${TRIMMED_FILES[*]}${CLEAR}.."
 
-  if [[ -f ${EXECUTABLE_NAME} ]]; then
-    echo -ne "${EXECUTABLE_NAME} seems to already exist, you wanna relink it? [Y/n] "; read RELINK
-    if [[ "${RELINK}" != [Nn] ]]; then
-      gcc ${CFLAGS} -o "${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
+  if [[ -f "${BIN}/${EXECUTABLE_NAME}" ]]; then
+    echo -ne "${YELLOW}!${CLEAR} ${CYAN}${EXECUTABLE_NAME}${CLEAR} seems to already exist, you wanna relink it? [${GREEN}Y${CLEAR}/${RED}n${CLEAR}]: "; read RELINK
+    if [[ ! "${RELINK}" =~ [Nn] ]]; then
+      gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
     fi
   else
-    gcc ${CFLAGS} -o "${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
+    gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
   fi
 
-  echo "Linked ${TRIMMED_FILES} successfully"
-  mv "${EXECUTABLE_NAME}" "${BIN}"
-
+  echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
   popd > /dev/null
 }
 
@@ -166,27 +169,44 @@ clean_dangling() {
   echo "main.c" >> "temp_dir1_files.txt"
 
   # Compare the lists and find .o files in dir2 that do not have a corresponding .c file in dir1
-  grep -Fxv -f <(sed 's/\.c$/.o/' "temp_dir1_files.txt") "temp_dir2_files.txt" > extra_o_files.txt
+  grep -Fxv -f <(sed 's/\.c$/.o/' "temp_dir1_files.txt") "temp_dir2_files.txt" > "extra_o_files.txt"
 
   # Remove extra .o files from dir2
   while read -r LINE; do
     rm -f "${DIR2}/${LINE}"
-  done < extra_o_files.txt
+  done < "extra_o_files.txt"
 
   # Cleanup
   rm temp_dir1_files.txt temp_dir2_files.txt extra_o_files.txt
 }
 
+clean() {
+  local CLEAN
+
+  echo -e "${RED}!${CLEAR} Cleaning ${CYAN}${OUT}${CLEAR} & ${CYAN}${BIN}${CLEAR}."
+  echo -ne "${RED}!${CLEAR} You sure you want to proceed? [${GREEN}y${CLEAR}/${RED}N${CLEAR}]: "; read CLEAN
+  if [[ "${CLEAN}" =~ [Nn] ]]; then
+    rm -fr "${OUT}/*"
+    rm -fr "${BIN}/*"
+    echo -e "${GREEN}✓${CLEAR} Cleaned ${CYAN}${OUT}${CLEAR} & ${CYAN}${BIN}${CLEAR} successfully."
+  else
+    echo -e "${GREEN}✓${CLEAR} Cancelled."
+  fi
+}
+
 
 case $1 in
   "-c" | "--compile")
-    compile $2
+    compile
   ;;
   "-l" | "--link")
     clean_dangling
     link $2
   ;;
+  "-d" | "--delete" | "--clean")
+    clean
+  ;;
   * | "--help" | "-h" | "-?")
-    print_help
+    print_help ${@}
   ;; 
 esac

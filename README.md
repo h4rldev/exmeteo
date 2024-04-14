@@ -1,4 +1,4 @@
-# EXMeteo
+# exMeteo
 
 ![[LICENSE](https://github.com/h4rldev/exmeteo/blob/main/LICENSE)](https://img.shields.io/github/license/h4rldev/exmeteo)
 
