@@ -2,7 +2,8 @@
 #include "./exmeteo/cli.h"
 
 int main(int argc, char **argv) { 
-  if (strlen(*argv) > 1) {
+  
+  if (argc > 1) {
     init(argc, argv);
   } else {
     test(argc, argv);
