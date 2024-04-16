@@ -18,7 +18,7 @@
 #endif
 
 char *getUsername(void);
-int compare_flags(int argc, char **argv, char *result[]);
-int init(int argc, char **argv);
+int compare_flags(char *argv[]);
+int init(int argc, char *argv[]);
 
 #endif // !CLI_H_INCLUDED

@@ -1,7 +1,5 @@
-#include <string.h>
 #define COLORS
 #include "cli.h"
-#include <stdio.h>
 
 #ifdef _WIN32
   #include <windows.h>
@@ -21,8 +19,14 @@
     strncpy(result, username);
     return result;
   }
+  int getTerminalWidth(void) {
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    return csbi.dwSize.X;
+  }
 #elif __linux__
   #include <unistd.h>
+  #include <sys/ioctl.h>
   char *getUsername() {
     char username[32] = {0};
     int username_size = sizeof(username) / sizeof(username[0]);
@@ -43,71 +47,109 @@
 
     return result;
   }
+  int getTerminalWidth(void) {
+    struct winsize w;
+    ioctl(0, TIOCGWINSZ, &w);
+    return w.ws_col;
+  }
 #else
   #error "Unsupported Operating System, use a normal os, loser"
 #endif
 
-
 const char* flags[5] = {
-  "--help",     // help-flag
-  "-?",         // shorterm for help
-  "-h",         // alternative shorterm for help
-  "--version",  // version-flag
-  "-v",         // shorterm for version
+  "--help",     // 0 help-flag
+  "-?",         // 1 shorterm for help
+  "-h",         // 2 alternative shorterm for help
+  "--version",  // 3 version-flag
+  "-v",         // 4 shorterm for version
 };
 
 
-int compare_flags(int argc, char *argv[], char *result[]) {
+int compare_flags(char *argv[]) {
   int arraySize = sizeof(flags) / sizeof(flags[0]);
-  int i = 1, j = 0;
 
-
-  for (int i = 1; i < argc; i++)  { //// OHHHH sorry yes yeah
-    // Iterate through each string in your array
-    for (int j = 0; j < arraySize; j++) {
-      // Compare the current string from argv with the current string from your array
-      if (strcmp(argv[i], flags[j]) == 0) {
-        result[i] = argv[i];
-      }
+  for (int i = 0; i < arraySize; i++)  {
+    if (strcmp(argv[1], flags[i]) == 0) {
+      return i;
     }
   }
-  
-  if (! result[1]) {
-    fprintf(stderr, "Error: No flags found.\n");
-    return 1;
-  }
-
-  return 0; 
+  printf(RED "!%s Unknown command, printing help text..\n\n", CLEAR);
+  return 1;
 }
 
-int print_help(char *argv[]) {
-  printf("Help screen!");
+int print_line(char* message) {
+  int terminal_width = getTerminalWidth();
+  for (int i = 0; i < terminal_width; i++) {
+    printf("%s", message);
+  }
+  printf("\n");
+  return 0;
+}
+
+int info_for_flag(
+  char* provided_flags[], 
+  int flag_amount,
+  char *flags_color,
+  char *info,
+  char *info_color
+) {
+  printf("%s%s", flags_color, provided_flags[0]);
+  for (int i = 1; i < flag_amount; i++) {
+    printf(CLEAR " | %s%s" CLEAR, flags_color, provided_flags[i]);
+  }
+  printf("\n");
+  printf("%s%s\n" CLEAR, info_color, info);
+  return 0;
+}
+
+int print_help(char **argv[]) {
+  printf( //Show application & version. 
+    GREEN "%s%s v%s%s%s - %sHELP\n" CLEAR,
+    __NAME__, CLEAR, CYAN, __PROGRAM_VERSION__, CLEAR, GREEN
+  );
+
+  printf( //Usage.
+    RED "USAGE: %s%s%s [FLAGS] [OPTIONS] [VALUE] \n", 
+    CYAN, *argv[0], CLEAR
+  );
+  
+  print_line("-");
+   
+  char* help[3]     = {"--help", "-h", "-?"};
+  char* version[2]  = {"--version", "-v"};
+ 
+  info_for_flag(help, 3, GREEN, "Prints this message.", YELLOW);
+  info_for_flag(version, 2, GREEN, "Prints program version.", YELLOW);
+  
+  print_line("-");
+
+  printf("Made with %s❤%s by %s%s\n" CLEAR, RED, CLEAR, BLUE, __AUTHOR__);
+
   return 0;
 }
 
 
+int print_version(void) {
+  printf(GREEN "%s%s v%s%s\n" CLEAR, __NAME__, CLEAR, CYAN, __PROGRAM_VERSION__);
+  return 0;
+}
 
 int init(int argc, char *argv[]) {
   char* user = getUsername();
-  printf(CYAN "Welcome to the exMeteo CLI v%s, %s%s%s!\n",__PROGRAM_VERSION__, RED, user, CLEAR);
-  free(user);
-  char *processed_flags[6] = {0};
-  int flag_comparison = compare_flags(argc, argv, processed_flags); 
-  if (flag_comparison == 1) {
-    return print_help(argv);
-  }
+  int flag = compare_flags(argv);
+  switch (flag) {
+    case 0:
+    case 1:
+    case 2:
+      print_help(&argv);
+      break;
 
-  for(int i = 1; i < 5; i++) {
-    if (
-      (strcmp(processed_flags[i], "-h") == 0) || 
-      (strcmp(processed_flags[i], "--help") == 0) || 
-      (strcmp(processed_flags[i], "-?") == 0)) {
-      printf("flag: %s\n", processed_flags[i]);
-      return print_help(argv);
-    } else {
-      printf("This happens if none of the correct help flags are passed.");
-      return 0;
-    }
-  }
+    case 3: 
+    case 4:
+      print_version();
+      break;
+  };
+
+  free(user);
   return 0;
 }
