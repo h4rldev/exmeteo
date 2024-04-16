@@ -1,5 +1,5 @@
-#define COLORS
 #include "cli.h"
+#include "req.h"
 
 #ifdef _WIN32
   #include <windows.h>
@@ -56,12 +56,17 @@
   #error "Unsupported Operating System, use a normal os, loser"
 #endif
 
-const char* flags[5] = {
-  "--help",     // 0 help-flag
-  "-?",         // 1 shorterm for help
-  "-h",         // 2 alternative shorterm for help
-  "--version",  // 3 version-flag
-  "-v",         // 4 shorterm for version
+const char* flags[10] = {
+  "--help",             // 0 help-flag
+  "-?",                 // 1 shorterm for help
+  "-h",                 // 2 alternative shorterm for help
+  "--version",          // 3 version-flag
+  "-v",                 // 4 shorterm for version
+  "--convert-currency", // 5 currency-converter flag
+  "--currenct-convert", // 6 currency-converter flag
+  "--convert",          // 7 shorterm for currency-converter
+  "--currency",         // 8 shorterm for currency-converter
+  "-c",                 // 9 extra shorterm for currency-converter
 };
 
 
@@ -135,7 +140,12 @@ int print_version(void) {
 }
 
 int init(int argc, char *argv[]) {
-  char* user = getUsername();
+  char *user = getUsername();
+  
+  char* url = "https://api.currencyfreaks.com/latest?apikey=bf2e3570251948288c3a96b5299775b9";
+  char *resp;
+
+
   int flag = compare_flags(argv);
   switch (flag) {
     case 0:
@@ -147,6 +157,15 @@ int init(int argc, char *argv[]) {
     case 3: 
     case 4:
       print_version();
+      break;
+
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+      printf("placeholder for currency converter\n");
+      req(url, resp);
       break;
   };
 

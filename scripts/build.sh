@@ -61,8 +61,8 @@ if ${COLOR}; then
   CLEAR='\033[0m'
 fi
 
-CFLAGS=$(pkg-config --cflags gtk+-3.0)
-LINKER_FLAGS=$(pkg-config --libs gtk+-3.0)
+CFLAGS=$(pkg-config --cflags gtk+-3.0) 
+LINKER_FLAGS="$(pkg-config --libs gtk+-3.0) -lcurl"
 
 if [[ ! -d ${OUT} ]]; then
   mkdir ${OUT}
