@@ -1,4 +1,5 @@
 #include "req.h"
+#include <stdio.h>
 
 struct MemoryStruct {
   char *memory;
@@ -27,10 +28,9 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   return realsize;
 }
 
-
-
-int req(char* url, char* resp) {
+char* req(char* url) {
   CURL *curl;
+  char *resp; 
   CURLcode response;
 
   struct MemoryStruct chunk;
@@ -41,24 +41,31 @@ int req(char* url, char* resp) {
 
   curl = curl_easy_init();
 
-  if (curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-
-    response = curl_easy_perform(curl);
-
-    
-    if(response != CURLE_OK) {
-      fprintf(stderr, RED "!%s curl_easy_perform() failed: %s\n", CLEAR, curl_easy_strerror(response));
-    } else {
-      printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
-      strncpy(resp, chunk.memory, chunk.size);
-    }
-    curl_easy_cleanup(curl);
-    free(chunk.memory);
+  if (!curl) {
+    fprintf(stderr, RED "!%s curl couldn't initialize, exiting..", CLEAR);
+    return 0;
   }
+    
+  curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+
+  response = curl_easy_perform(curl);
+  if(response != CURLE_OK) {
+    fprintf(stderr, RED "!%s curl_easy_perform() failed: %s\n", CLEAR, curl_easy_strerror(response));
+    return 0; 
+  }
+  printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
+  resp = (char*)malloc((chunk.size + 1));
+  if (!resp) {
+    fprintf(stderr, "Can't allocate memory for response, exiting..");
+    free(resp);
+    return 0;
+  }
+
+  strncpy(resp, chunk.memory, chunk.size);
+  curl_easy_cleanup(curl);
   curl_global_cleanup();
-  return 0;
+  return resp;
 }

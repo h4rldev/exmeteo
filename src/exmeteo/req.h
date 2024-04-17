@@ -8,6 +8,6 @@
 #include <stdio.h>
 #include "color.h"
 
-int req(char* url, char* resp);
+char *req(char* url);
 
 #endif // !REQ_H_INCLUDED 

@@ -1,5 +1,5 @@
 #include "cli.h"
-#include "req.h"
+#include "parse.h"
 
 #ifdef _WIN32
   #include <windows.h>
@@ -30,7 +30,7 @@
   char *getUsername() {
     char username[32] = {0};
     int username_size = sizeof(username) / sizeof(username[0]);
-    char *result = (char*)malloc((username_size + 1) * sizeof(char));
+    char *result = (char*)malloc((username_size + 1));
     if (! result) { // i added space for readabiltiy
       fprintf(stderr, "Can't allocate memory for username, exiting..");
       free(result);
@@ -165,7 +165,10 @@ int init(int argc, char *argv[]) {
     case 8:
     case 9:
       printf("placeholder for currency converter\n");
-      req(url, resp);
+      char *api_key = "966eb565013e92b110e1cf0d";
+      char *codes = currency__get_json_value(api_key, "supported_codes");
+      printf("codes = %s\n", codes);
+      free(codes);
       break;
   };
 
