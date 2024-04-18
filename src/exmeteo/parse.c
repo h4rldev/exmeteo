@@ -32,6 +32,7 @@ char *currency__get_json_value(char* api_key, char* value) {
   
   strncpy(codes_response, printed_json, printed_json_len);
   
+  free(response);
   cJSON_free(printed_json);
   cJSON_Delete(json);
   
