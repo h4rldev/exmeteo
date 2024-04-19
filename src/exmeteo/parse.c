@@ -1,4 +1,5 @@
 #include "parse.h"
+#include <cjson/cJSON.h>
 
 cJSON *currency__get_json_value(char* api_key, char* value) {
   char url[80];
@@ -64,18 +65,32 @@ char*** currency__get_codes(char *api_key) {
   int size = cJSON_GetArraySize(codes);
 
     // Allocate memory for the 2D array
-  char ***currency_codes = (char ***)malloc(size * sizeof(char **));
-  for (int i = 0; i < size; i++) {
-    currency_codes[i] = (char **)malloc(2 * sizeof(char **));
-  }
-
+  char ***currency_codes = (char ***)malloc((size * sizeof(char ***)));
     // Iterate over the JSON array and store the strings in the 2D array
   for (int i = 0; i < size; i++) {
     cJSON *item = cJSON_GetArrayItem(codes, i);
     cJSON *code = cJSON_GetArrayItem(item, 0);
     cJSON *name = cJSON_GetArrayItem(item, 1);
-    currency_codes[i][0] = cJSON_GetStringValue(code);
-    currency_codes[i][1] = cJSON_GetStringValue(name);
+    
+    char *code_str = cJSON_GetStringValue(code);
+    char *name_str = cJSON_GetStringValue(name);
+
+    int code_size = (strlen(code_str) + 1);
+    int name_size = (strlen(name_str) + 1);
+    
+    currency_codes[i] = (char **)malloc((2 * sizeof(char **)));
+    printf("Allocating currency_codes[%d][0]..", i);
+    currency_codes[i][0] = (char *)malloc(code_size); // +1 for the null terminator
+    printf("Allocating currency_codes[%d][1]..", i);
+    currency_codes[i][1] = (char *)malloc(name_size); // +1 for the null terminator
+
+    strncpy(currency_codes[i][0], code_str, code_size);
+    strncpy(currency_codes[i][1], name_str, name_size);
+    cJSON_free(item);
+    cJSON_free(code);
+    cJSON_free(name);
+    cJSON_free(code_str);
+    cJSON_free(name_str);
   }
 
   // Print the 2D array to verify
@@ -84,8 +99,6 @@ char*** currency__get_codes(char *api_key) {
   //}
 
   // Free the allocated memory
-    
-
   cJSON_Delete(codes);
   return currency_codes;
 }

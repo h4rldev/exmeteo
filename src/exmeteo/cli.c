@@ -142,8 +142,6 @@ int print_version(void) {
 
 int init(int argc, char *argv[]) {
   char *user = getUsername();
-  char *resp;
-
 
   int flag = compare_flags(argv);
   switch (flag) {
@@ -152,12 +150,10 @@ int init(int argc, char *argv[]) {
     case 2:
       print_help(&argv);
       break;
-
-    case 3: 
+    case 3:
     case 4:
       print_version();
       break;
-
     case 5:
     case 6:
     case 7:
@@ -167,13 +163,7 @@ int init(int argc, char *argv[]) {
       char *api_key = "966eb565013e92b110e1cf0d";
       char ***array = currency__get_codes(api_key);
       printf("got array hopefully\n");
-      int array_size = sizeof(array) / sizeof(array[0]);
-      printf("size of array: %d\n", array_size);
-      printf("%s", array[0][0]);
-      for (int i = 0; i < array_size; i++) {
-        free(array[i]);
-      }
-      free(array);
+      printf("%s", array[0][1]);
       break;
   };
 

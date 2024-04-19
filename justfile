@@ -1,6 +1,9 @@
 default:
   just --list
 
+@compile-debug name="exmeteo":
+  scripts/build.sh -c {{name}} --debug
+
 @compile name="exmeteo":
   scripts/build.sh -c {{name}}
 
@@ -15,3 +18,8 @@ default:
   just compile {{name}}
   just link {{name}}
   ./bin/{{name}} {{args}}
+
+@debug name="exmeteo":
+  just compile-debug {{name}}
+  just link {{name}}
+  gdb ./bin/{{name}}

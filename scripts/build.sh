@@ -61,6 +61,13 @@ if ${COLOR}; then
   CLEAR='\033[0m'
 fi
 
+if [[ ${3} == "--debug" ]]; then 
+  DEBUG=true
+else
+  DEBUG=false
+fi
+
+
 CFLAGS=$(pkg-config --cflags gtk+-3.0) 
 LINKER_FLAGS="$(pkg-config --libs gtk+-3.0) -lcurl -lcjson"
 
@@ -103,10 +110,18 @@ compile() {
     if [[ -f "${OUT}/${TRIMMED_C_FILENAME}.o" ]]; then
       echo -ne "${YELLOW}!${CLEAR} ${CYAN}${TRIMMED_C_FILENAME}.o${CLEAR} seems to already exist, you wanna recompile it? [${GREEN}Y${CLEAR}/${RED}n${CLEAR}]: "; read RECOMPILE
       if [[ ! "${RECOMPILE}" =~ [Nn] ]]; then
-        gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+        if $DEBUG; then 
+          gcc ${CFLAGS} -ggdb -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+        else
+          gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+        fi
       fi
     else 
-      gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+      if $DEBUG; then 
+          gcc ${CFLAGS} -ggdb -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+      else
+          gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+      fi
     fi
   done
 
@@ -130,7 +145,7 @@ link() {
   if [[ -n ${1} ]]; then 
     EXECUTABLE_NAME="${1}"
   else
-    echo -e "${RED}!!${CLEAR} No executable name set, using default."
+    echo -e "${RED}!${CLEAR} No executable name set, using default."
     EXECUTABLE_NAME="exmeteo"
   fi 
 
