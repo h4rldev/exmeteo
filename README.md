@@ -6,6 +6,6 @@
 > [!CAUTION]
 > This project is in very early dev and is in no way useful yet!
 
-A weather & currency Converter app written in C.
+A weather & currency converter app written in C.
 
 

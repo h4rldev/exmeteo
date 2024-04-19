@@ -1,5 +1,6 @@
 #include "cli.h"
 #include "parse.h"
+#include <stdio.h>
 
 #ifdef _WIN32
   #include <windows.h>
@@ -141,8 +142,6 @@ int print_version(void) {
 
 int init(int argc, char *argv[]) {
   char *user = getUsername();
-  
-  char* url = "https://api.currencyfreaks.com/latest?apikey=bf2e3570251948288c3a96b5299775b9";
   char *resp;
 
 
@@ -166,9 +165,15 @@ int init(int argc, char *argv[]) {
     case 9:
       printf("placeholder for currency converter\n");
       char *api_key = "966eb565013e92b110e1cf0d";
-      char *codes = currency__get_json_value(api_key, "supported_codes");
-      printf("codes = %s\n", codes);
-      free(codes);
+      char ***array = currency__get_codes(api_key);
+      printf("got array hopefully\n");
+      int array_size = sizeof(array) / sizeof(array[0]);
+      printf("size of array: %d\n", array_size);
+      printf("%s", array[0][0]);
+      for (int i = 0; i < array_size; i++) {
+        free(array[i]);
+      }
+      free(array);
       break;
   };
 
