@@ -10,6 +10,7 @@ cJSON *currency__get_json_value(char* api_key, char* value) {
   
   char *response = req(url);
   size_t response_length = (size_t)strlen(response);
+  printf("response length: %lu", response_length);
   
   cJSON *json = cJSON_ParseWithLength(response, response_length);
   if (! json) {
@@ -19,26 +20,9 @@ cJSON *currency__get_json_value(char* api_key, char* value) {
     }
     return 0;
   }
-  cJSON *json_value = cJSON_GetObjectItemCaseSensitive(json, value);  
+  cJSON *json_value = cJSON_GetObjectItemCaseSensitive(json, value);
+  free(response);
   return json_value;
-}
-
-char ***allocate_2D_string_array(int totalStrings, int stringSize) {
-    // Allocate memory for the outer array
-    printf("allocating %lu to array\n", totalStrings * sizeof(char **));
-    char ***stringList = (char ***)malloc(totalStrings * sizeof(char **));
-
-    // Allocate memory for each inner array
-    for (int i = 0; i < totalStrings; i++) {
-        stringList[i] = (char **)malloc((2 * sizeof(char*)));
-
-        // Allocate memory for each string
-        for (int j = 0; j < 2; j++) {
-            stringList[i][j] = (char *)malloc(stringSize);
-        }
-    }
-
-    return stringList;
 }
 
 void free_2D_string_array(char ***stringList, int totalStrings) {
@@ -63,9 +47,8 @@ char*** currency__get_codes(char *api_key) {
   }
   // Determine the size of the JSON array
   int size = cJSON_GetArraySize(codes);
-
     // Allocate memory for the 2D array
-  char ***currency_codes = (char ***)malloc((size * sizeof(char ***)));
+  char ***currency_codes = (char ***)malloc((size * sizeof(char **)));
     // Iterate over the JSON array and store the strings in the 2D array
   for (int i = 0; i < size; i++) {
     cJSON *item = cJSON_GetArrayItem(codes, i);
@@ -78,28 +61,24 @@ char*** currency__get_codes(char *api_key) {
     int code_size = (strlen(code_str) + 1);
     int name_size = (strlen(name_str) + 1);
     
-    currency_codes[i] = (char **)malloc((2 * sizeof(char **)));
+    currency_codes[i] = (char **)malloc((2 * sizeof(char *)));
     printf("Allocating currency_codes[%d][0]..", i);
     currency_codes[i][0] = (char *)malloc(code_size); // +1 for the null terminator
     printf("Allocating currency_codes[%d][1]..", i);
     currency_codes[i][1] = (char *)malloc(name_size); // +1 for the null terminator
 
+
     strncpy(currency_codes[i][0], code_str, code_size);
     strncpy(currency_codes[i][1], name_str, name_size);
-    cJSON_free(item);
-    cJSON_free(code);
-    cJSON_free(name);
-    cJSON_free(code_str);
-    cJSON_free(name_str);
   }
 
   // Print the 2D array to verify
-  //for (int i = 0; i < size; i++) {
+  // for (int i = 0; i < size; i++) {
   //  printf("[\"%s\",\"%s\"]\n", currency_codes[i][0], currency_codes[i][1]);
   //}
 
   // Free the allocated memory
-  cJSON_Delete(codes);
+  cJSON_Delete(codes); 
   return currency_codes;
 }
 

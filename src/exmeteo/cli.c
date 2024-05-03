@@ -1,5 +1,6 @@
 #include "cli.h"
 #include "parse.h"
+#include <curl/curl.h>
 #include <stdio.h>
 
 #ifdef _WIN32
@@ -64,7 +65,7 @@ const char* flags[10] = {
   "--version",          // 3 version-flag
   "-v",                 // 4 shorterm for version
   "--convert-currency", // 5 currency-converter flag
-  "--currenct-convert", // 6 currency-converter flag
+  "--currency-convert", // 6 currency-converter flag
   "--convert",          // 7 shorterm for currency-converter
   "--currency",         // 8 shorterm for currency-converter
   "-c",                 // 9 extra shorterm for currency-converter
@@ -123,9 +124,11 @@ int print_help(char **argv[]) {
    
   char* help[3]     = {"--help", "-h", "-?"};
   char* version[2]  = {"--version", "-v"};
+  char* currency[5] = {"--convert-currency", "--currency-convert", "--convert", "--currency", "-c"};
  
   info_for_flag(help, 3, GREEN, "Prints this message.", YELLOW);
   info_for_flag(version, 2, GREEN, "Prints program version.", YELLOW);
+  info_for_flag(currency, 5, GREEN, "Convert one currency to another", YELLOW);
   
   print_line("-");
 
@@ -142,6 +145,7 @@ int print_version(void) {
 
 int init(int argc, char *argv[]) {
   char *user = getUsername();
+
 
   int flag = compare_flags(argv);
   switch (flag) {
@@ -163,7 +167,11 @@ int init(int argc, char *argv[]) {
       char *api_key = "966eb565013e92b110e1cf0d";
       char ***array = currency__get_codes(api_key);
       printf("got array hopefully\n");
-      printf("%s", array[0][1]);
+      int array_length = sizeof(array) / sizeof(array[0]);
+      printf("array len = %d", array_length);
+      printf("%s \n", array[0][1]);
+      free_2D_string_array(array, 162);
+      printf("size of char *: %lu \nsize of char **: %lu \nsize of char ***: %lu", sizeof(char *), sizeof(char **), sizeof(char ***));
       break;
   };
 

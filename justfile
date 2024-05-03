@@ -22,4 +22,3 @@ default:
 @debug name="exmeteo":
   just compile-debug {{name}}
   just link {{name}}
-  gdb ./bin/{{name}}
