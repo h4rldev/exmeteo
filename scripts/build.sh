@@ -160,12 +160,14 @@ link() {
     echo -ne "${YELLOW}!${CLEAR} ${CYAN}${EXECUTABLE_NAME}${CLEAR} seems to already exist, you wanna relink it? [${GREEN}Y${CLEAR}/${RED}n${CLEAR}]: "; read RELINK
     if [[ ! "${RELINK}" =~ [Nn] ]]; then
       gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
+      echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
     fi
   else
     gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
+    echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
+
   fi
 
-  echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
   popd > /dev/null
 }
 

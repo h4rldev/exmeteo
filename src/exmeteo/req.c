@@ -30,7 +30,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 
 char* req(char* url) {
   CURL *curl;
-  char *resp = 0; 
+  char *resp; 
   CURLcode response;
 
   struct MemoryStruct chunk;
@@ -65,6 +65,7 @@ char* req(char* url) {
   }
 
   strncpy(resp, chunk.memory, chunk.size);
+  resp[chunk.size] = "\0";
   free(chunk.memory);
   curl_easy_cleanup(curl);
   curl_global_cleanup();

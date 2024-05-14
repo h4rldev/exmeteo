@@ -9,8 +9,9 @@ cJSON *currency__get_json_value(char* api_key, char* value) {
   printf("url = %s\n", url);
   
   char *response = req(url);
+  printf("response: %s \n", response);
   size_t response_length = (size_t)strlen(response);
-  printf("response length: %lu", response_length);
+  printf("response length: %lu \n", response_length);
   
   cJSON *json = cJSON_ParseWithLength(response, response_length);
   if (! json) {
