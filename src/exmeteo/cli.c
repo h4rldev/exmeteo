@@ -58,25 +58,10 @@
   #error "Unsupported Operating System, use a normal os, loser"
 #endif
 
-const char* flags[10] = {
-  "--help",             // 0 help-flag
-  "-?",                 // 1 shorterm for help
-  "-h",                 // 2 alternative shorterm for help
-  "--version",          // 3 version-flag
-  "-v",                 // 4 shorterm for version
-  "--convert-currency", // 5 currency-converter flag
-  "--currency-convert", // 6 currency-converter flag
-  "--convert",          // 7 shorterm for currency-converter
-  "--currency",         // 8 shorterm for currency-converter
-  "-c",                 // 9 extra shorterm for currency-converter
-};
+int compare_flag(char *argv[], char *flag_list[], int flags_len, int level) {
 
-
-int compare_flags(char *argv[]) {
-  int arraySize = sizeof(flags) / sizeof(flags[0]);
-
-  for (int i = 0; i < arraySize; i++)  {
-    if (strcmp(argv[1], flags[i]) == 0) {
+  for (int i = 0; i < flags_len; i++)  {
+    if (strcmp(argv[level], flag_list[i]) == 0) {
       return i;
     }
   }
@@ -122,9 +107,9 @@ int print_help(char **argv[]) {
   
   print_line("-");
    
-  char* help[3]     = {"--help", "-h", "-?"};
+  char* help[3]     = {"--help", "-h",};
   char* version[2]  = {"--version", "-v"};
-  char* currency[5] = {"--convert-currency", "--currency-convert", "--convert", "--currency", "-c"};
+  char* currency[5] = {"--currency", "-c"};
  
   info_for_flag(help, 3, GREEN, "Prints this message.", YELLOW);
   info_for_flag(version, 2, GREEN, "Prints program version.", YELLOW);
@@ -143,35 +128,42 @@ int print_version(void) {
   return 0;
 }
 
+int get_codes(void) {
+    char *api_key = "966eb565013e92b110e1cf0d";
+    char ***array = currency__get_codes(api_key);
+    printf("%s \n", array[0][1]);
+    free_2D_string_array(array, 162);
+    return 0;
+}
+
 int init(int argc, char *argv[]) {
   char *user = getUsername();
+  
+  char* flags[8] = {
+    "--help", "-h",     // 0 - 1 help
+    "--version", "-v",   // 2 - 3 version 
+    "--currency", "-c", // 4 - 5 currency-converter
+    "--weather", "-w"   // 6 - 7 weather
+  };
+
+  const char* subflags[2] = {
+    "--list", "-l"      // list weather / currencies [USELESS AS OF NOW]
+  };
 
 
-  int flag = compare_flags(argv);
+  int flag = compare_flag(argv, flags, 8, 1);
   switch (flag) {
     case 0:
     case 1:
-    case 2:
       print_help(&argv);
       break;
+    case 2:
     case 3:
-    case 4:
       print_version();
       break;
+    case 4:
     case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-      printf("placeholder for currency converter\n");
-      char *api_key = "966eb565013e92b110e1cf0d";
-      char ***array = currency__get_codes(api_key);
-      printf("got array hopefully\n");
-      int array_length = sizeof(array) / sizeof(array[0]);
-      printf("array len = %d", array_length);
-      printf("%s \n", array[0][1]);
-      free_2D_string_array(array, 162);
-      printf("size of char *: %lu \nsize of char **: %lu \nsize of char ***: %lu", sizeof(char *), sizeof(char **), sizeof(char ***));
+      get_codes(); 
       break;
   };
 

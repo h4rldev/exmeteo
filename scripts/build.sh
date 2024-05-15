@@ -69,7 +69,7 @@ fi
 
 
 CFLAGS=$(pkg-config --cflags gtk+-3.0) 
-LINKER_FLAGS="$(pkg-config --libs gtk+-3.0) -lcurl -lcjson"
+LINKER_FLAGS="$(pkg-config --libs gtk+-3.0) -lcurl -ljansson"
 
 if [[ ! -d ${OUT} ]]; then
   mkdir ${OUT}

@@ -65,7 +65,7 @@ char* req(char* url) {
   }
 
   strncpy(resp, chunk.memory, chunk.size);
-  resp[chunk.size] = "\0";
+  resp[chunk.size] = '\0';
   free(chunk.memory);
   curl_easy_cleanup(curl);
   curl_global_cleanup();

@@ -3,10 +3,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <cjson/cJSON.h>
+#include <jansson.h>
 #include "req.h"
 
-cJSON *currency__get_json_value(char *api_key, char *value);
 char*** currency__get_codes(char *api_key);
 void free_2D_string_array(char ***stringList, int totalStrings);
 

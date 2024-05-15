@@ -1,7 +1,4 @@
-// homemade
 #include "gui.h"
-// macros
-
 
 static void print_hello(GtkWidget *widget, gpointer data) {
     g_print("Hello World\n");
@@ -20,6 +17,8 @@ static void on_response(GtkDialog *dialog, gint response_id, gpointer user_data)
         case GTK_RESPONSE_CANCEL:
             g_print("Cancel button clicked\n");
             break;
+        case GTK_RESPONSE_CLOSE:
+            g_print("Closing.. \n");
         default:
             g_print("Unknown button clicked\n");
             break;

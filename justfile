@@ -14,11 +14,12 @@ default:
   just compile {{name}}
   just link {{name}}
 
-@run name="exmeteo" args="":
+@run args="" name="exmeteo":
   just compile {{name}}
   just link {{name}}
   ./bin/{{name}} {{args}}
 
-@debug name="exmeteo":
+@debug args="" name="exmeteo":
   just compile-debug {{name}}
   just link {{name}}
+  valgrind ./bin/{{name}} {{args}}
