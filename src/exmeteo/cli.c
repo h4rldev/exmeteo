@@ -130,7 +130,7 @@ int print_version(void) {
 
 int get_codes(void) {
     char *api_key = "966eb565013e92b110e1cf0d";
-    char ***array = currency__get_codes(api_key);
+    char ***array = currency__get_codes(api_key, "cache.json");
     printf("%s \n", array[0][1]);
     free_2D_string_array(array, 162);
     return 0;
