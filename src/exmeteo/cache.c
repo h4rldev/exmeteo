@@ -1,6 +1,7 @@
 #include "cache.h"
 #include "color.h"
 #include "file.h"
+#include <stdio.h>
  
 json_t *read_from_cache(char *cache_name) {
   char *path = get_path(cache_name);
@@ -25,7 +26,13 @@ json_t *read_from_cache(char *cache_name) {
   fread(buffer, 1, fsize, cache_file);
   buffer[fsize] = '\0';
 
-  fclose(cache_file);
+  size_t amount_read = fclose(cache_file);
+  if (amount_read <= 1) {
+    printf(stderr, RED "!%s File didn't read properly.\n", CLEAR);
+    free(buffer);
+    free(path);
+    return 0;
+  }
 
   printf("buffer: %s", buffer);
 
