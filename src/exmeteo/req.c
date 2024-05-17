@@ -56,7 +56,7 @@ char* req(char* url) {
     fprintf(stderr, RED "!%s curl_easy_perform() failed: %s\n", CLEAR, curl_easy_strerror(response));
     return 0; 
   }
-  printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
+  //printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
   resp = (char*)malloc((chunk.size + 1));
   if (!resp) {
     fprintf(stderr, "Can't allocate memory for response, exiting..");
