@@ -1,6 +1,5 @@
 #include "parse.h"
 #include "req.h"
-#include "cache.h"
 #include "file.h"
 
 int count_instances(const char *str, const char *substr) {

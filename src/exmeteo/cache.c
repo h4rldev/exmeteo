@@ -23,16 +23,16 @@ json_t *read_from_cache(char *cache_name) {
     return 0;
   }
   
-  fread(buffer, 1, fsize, cache_file);
-  buffer[fsize] = '\0';
-
-  size_t amount_read = fclose(cache_file);
-  if (amount_read <= 1) {
-    fprintf(stderr, RED "!%s File didn't read properly.\n", CLEAR);
+  size_t amount_read = fread(buffer, 1, fsize, cache_file);
+  if (amount_read < 1) {
+    fprintf(stderr, RED "!%s Failed to read file properly.\n", CLEAR);
     free(buffer);
     free(path);
     return 0;
   }
+
+  buffer[fsize] = '\0';
+  fclose(cache_file); 
 
   printf("buffer: %s", buffer);
 

@@ -1,5 +1,4 @@
 #include "req.h"
-#include <stdio.h>
 
 struct MemoryStruct {
   char *memory;
