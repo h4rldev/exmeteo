@@ -15,7 +15,7 @@
   #error "Unsupported Operating System, use a normal os, loser" 
 #endif
 
-bool dir_exist(const char *dirname);
+bool dir_exists(const char *dirname);
 bool file_exists(const char *filename);
 int create_dir(const char *dirname);
 char *get_path(const char *filename);
