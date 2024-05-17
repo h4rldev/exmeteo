@@ -85,16 +85,24 @@ jobs:
     # to build your code.
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-    - if: matrix.build-mode == 'manual'
+    - name: Setup pkg-config path
       shell: bash
       run: |
-        echo "export PKG_CONFIG_PATH=/usr/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+        echo "export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+
+    - name: Install dependencies.
+      shell: bash
+      run: |
         sudo apt update
         sudo apt install libjansson-dev libgtk-3-dev libcurl4-openssl-dev libglib2.0-dev
+    
+    - name: Manual build and setup
+      if: matrix.build-mode == 'manual'
+      shell: bash
+      run: |
         ./scripts/build.sh -c exmeteo
         ./scripts/build.sh -l exmeteo
         mv ./bin/exmeteo .
-        exit 0
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@b7cec7526559c32f1616476ff32d17ba4c59b2d6 # v3.25.5
