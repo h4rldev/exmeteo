@@ -30,7 +30,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'fedora-latest' }}
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
       # required for all workflows
@@ -93,8 +93,8 @@ jobs:
     - name: Install dependencies.
       shell: bash
       run: |
-        sudo apt update
-        sudo apt install libjansson-dev libgtk-3-dev libcurl4-openssl-dev libglib2.0-dev
+        sudo yum -y update
+        sudo yum install jansson-devel gtk3-devel libcurl-devel glib2-devel
     
     - name: Manual build and setup
       if: matrix.build-mode == 'manual'
