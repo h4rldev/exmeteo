@@ -4,6 +4,7 @@
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #ifdef _WIN32
@@ -20,10 +21,9 @@
   #error "Unsupported Operating System, use a normal os, loser"
 #endif
 
-json_t *read_from_cache(char *cache_name);
+json_t *read_from_cache(const char *cache_name);
 
-int write_to_json(char *filename, json_t *json);
-int update_cache(char *api_key);
-int clear_cache();
+int write_to_json(const char *filename, json_t *json, bool free_json);
+int update_cache(const char *api_key);
 
 #endif

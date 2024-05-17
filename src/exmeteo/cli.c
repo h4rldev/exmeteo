@@ -58,7 +58,7 @@
   #error "Unsupported Operating System, use a normal os, loser"
 #endif
 
-int compare_flag(char *argv[], char *flag_list[], int flags_len, int level) {
+int compare_flag(char **argv, const char *flag_list[], int flags_len, int level) {
 
   for (int i = 0; i < flags_len; i++)  {
     if (strcmp(argv[level], flag_list[i]) == 0) {
@@ -94,7 +94,7 @@ int info_for_flag(
   return 0;
 }
 
-int print_help(char **argv[]) {
+int print_help(char ***argv) {
   printf( //Show application & version. 
     GREEN "%s%s v%s%s%s - %sHELP\n" CLEAR,
     __NAME__, CLEAR, CYAN, __PROGRAM_VERSION__, CLEAR, GREEN
@@ -128,7 +128,7 @@ int print_version(void) {
   return 0;
 }
 
-int get_codes(void) {
+int get_codes(int argc, char **argv) {
     char *api_key = "966eb565013e92b110e1cf0d";
     char ***array = currency__get_codes(api_key, "cache.json");
     printf("%s \n", array[0][1]);
@@ -139,7 +139,7 @@ int get_codes(void) {
 int init(int argc, char *argv[]) {
   char *user = getUsername();
   
-  char* flags[8] = {
+  const char* flags[8] = {
     "--help", "-h",     // 0 - 1 help
     "--version", "-v",   // 2 - 3 version 
     "--currency", "-c", // 4 - 5 currency-converter
@@ -163,7 +163,7 @@ int init(int argc, char *argv[]) {
       break;
     case 4:
     case 5:
-      get_codes(); 
+      get_codes(argc, argv);
       break;
   };
 

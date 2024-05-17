@@ -27,7 +27,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   return realsize;
 }
 
-char* req(char* url) {
+char* req(const char* url) {
   CURL *curl;
   char *resp; 
   CURLcode response;

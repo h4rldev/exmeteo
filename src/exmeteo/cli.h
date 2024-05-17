@@ -9,6 +9,6 @@
 #include "color.h"
 
 char *getUsername(void);
-int init(int argc, char *argv[]);
+int init(int argc, char **argv);
 
 #endif // !CLI_H_INCLUDED

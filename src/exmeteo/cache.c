@@ -1,11 +1,10 @@
 #include "cache.h"
 #include "color.h"
 #include "file.h"
-#include <stdio.h>
  
-json_t *read_from_cache(char *cache_name) {
+json_t *read_from_cache(const char *cache_name) {
   char *path = get_path(cache_name);
-  
+
   FILE *cache_file = fopen(path, "r");
   if (!cache_file) {
     fprintf(stderr, RED "!%s Can't open file.\n", CLEAR);
@@ -34,27 +33,43 @@ json_t *read_from_cache(char *cache_name) {
   buffer[fsize] = '\0';
   fclose(cache_file); 
 
-  printf("buffer: %s", buffer);
+  json_t *codes;
+  json_error_t error;
+  codes = json_loads(buffer, 0, &error);
+  if (!codes) {
+    fprintf(stderr, RED "!%s Error parsing JSON on line: %d: %s\n", CLEAR, error.line, error.text);
+    free(buffer);
+    return 0;
+  }
 
+  if (!json_is_array(codes)) {
+    fprintf(stderr, RED "!%s JSON not array?\n", CLEAR);
+    free(buffer);
+    return 0;
+  }
+   
   free(buffer);
   free(path);
-  return 0;
+  return codes;
 } 
 
-int write_to_json(char *filename, json_t *json) {
+int write_to_json(const char *filename, json_t *json, bool free_json) {
   char* path = get_path(filename);
+  printf("path: %s", path);
 
   char *json_str = json_dumps(json, 0);
   if (! json_str) {
     fprintf(stderr, RED "!%s Error while dumping JSON.\n", CLEAR);
+    free(path);
     return 1;
   }
 
   FILE *file = fopen(path, "w");
   if (!file) {
-      fprintf(stderr, RED "!%s Failed to open file in write mode.\n", CLEAR);
-      free(json_str);
-      return 1;
+    fprintf(stderr, RED "!%s Failed to open file in write mode.\n", CLEAR);
+    free(json_str);
+    free(path);
+    return 1;
   }
 
   fputs(json_str, file);
@@ -63,7 +78,9 @@ int write_to_json(char *filename, json_t *json) {
   free(json_str);
   free(path);
 
-  json_decref(json);
+  if (free_json) {
+    json_decref(json);
+  }
 
   return 0;
 }

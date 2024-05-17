@@ -54,7 +54,7 @@ char *get_path(const char* filename) {
     create_dir(cache_dir); 
   }
 
-  size_t completed_path_size = (size_t)(strlen(cache_dir) + strlen(filename));
+  size_t completed_path_size = (size_t)(strlen(cache_dir) + strlen(filename)) + 1;
   char completed_path[completed_path_size];
 
   snprintf(completed_path, completed_path_size, "%s%s", cache_dir, filename);
