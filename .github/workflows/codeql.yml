@@ -80,6 +80,9 @@ jobs:
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |
+        sudo apt update
+        sudo apt install libjansson-dev
+        sudo apt install libgtk-3-dev
         ./scripts/build.sh -c exmeteo
         ./scripts/build.sh -l exmeteo
         mv ./bin/exmeteo .
