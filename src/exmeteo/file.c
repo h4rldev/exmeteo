@@ -50,7 +50,7 @@ char *get_path(const char* filename) {
   
   snprintf(cache_dir, size_of_cache_dir, "%s%s", HOME, CACHE_DIR);
 
-  if (!dir_exist(cache_dir)) {
+  if (!dir_exists(cache_dir)) {
     create_dir(cache_dir); 
   }
 
