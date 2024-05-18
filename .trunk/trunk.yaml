@@ -19,7 +19,7 @@ runtimes:
 lint:
   enabled:
     - actionlint@1.7.0
-    - checkov@3.2.94
+    - checkov@3.2.95
     - git-diff-check
     - markdownlint@0.40.0
     - prettier@3.2.5
@@ -34,3 +34,7 @@ actions:
     - trunk-check-pre-push
     - trunk-fmt-pre-commit
     - trunk-upgrade-available
+tools:
+  enabled:
+    - clang-tidy@16.0.3
+    - clang-format@14.0.1

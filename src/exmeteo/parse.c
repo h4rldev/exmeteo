@@ -3,6 +3,8 @@
 #include "req.h"
 #include "file.h"
 #include "color.h"
+#include <stdio.h>
+#include <string.h>
 
 int count_instances(const char *str, const char *substr) {
   int count = 0;
@@ -27,6 +29,42 @@ void free_2D_string_array(char ***string_list, int total_strings) {
   free(string_list);
 }
 
+void free_string_array(char **string_array, int array_len) {
+  for (int i = 0; i < array_len; i++) {
+    free(string_array[i]);
+  }
+  free(string_array);
+}
+
+char *strremove(char *str, const char *sub) {
+    size_t len = strlen(sub);
+    if (len > 0) {
+        char *p = str;
+        while ((p = strstr(p, sub)) != 0) {
+            memmove(p, p + len, strlen(p + len) + 1);
+        }
+    }
+    return str;
+}
+bool value_exist_in_2D_array(const char *value, char ***array, int rows, int cols, bool free_array) {
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      if (strcmp(array[i][j], value) == 0) {
+        if (free_array) {
+          free_2D_string_array(array, rows);
+        }
+
+        return true;
+      }
+    }
+  }
+  
+  if (free_array) {
+    free_2D_string_array(array, rows);
+  }
+
+  return false;
+}
 
 char ***get_2D_array_from_json(json_t *json) {
   int size = json_array_size(json);
@@ -87,16 +125,16 @@ json_t *get_content_from_element(const char *url, char *element) {
 }
 
 
-char ***currency__get_codes(const char *api_key, const char *filename) {
+char ***currency__get_codes(const char *currency_api_key, const char *filename) {
   char *path = get_path(filename);
 
-  char *url_fmt = "https://v6.exchangerate-api.com/v6/%s/codes";
+  const char *url_fmt = "https://v6.exchangerate-api.com/v6/%s/codes";
 
   int fmt_count = count_instances(url_fmt, "%s"); 
-  size_t url_len = (size_t)(strlen(url_fmt) - fmt_count) + strlen(api_key) + 1;
+  size_t url_len = (size_t)(strlen(url_fmt) - fmt_count) + strlen(currency_api_key) + 1;
   char url[url_len];
 
-  snprintf(url, url_len, url_fmt, api_key);
+  snprintf(url, url_len, url_fmt, currency_api_key);
 
   if (file_exists(path)) {
     json_t *codes = read_from_cache(filename);
@@ -121,7 +159,7 @@ char ***currency__get_codes(const char *api_key, const char *filename) {
   }
 
   if(write_to_json(filename, codes, false) == 1) {
-    fprintf(stderr, RED "!%s Can't write to json for some reason, does cache exist?.\n", CLEAR);
+    fprintf(stderr, RED "!%s Can't write to json for some reason, does cache exist?\n", CLEAR);
     free(path);
 
     return 0;
@@ -131,12 +169,64 @@ char ***currency__get_codes(const char *api_key, const char *filename) {
   return get_2D_array_from_json(codes);
 }
 
-float get_conversion_rate(const char *cur1, const char *cur2, const char* api_key) {
-  char *url_fmt = "https://v6.exchangerate-api.com/v6/%s/pair/%s/%s";
-  size_t url_len = (size_t)strlen(url_fmt) + strlen(api_key) + 1;
+char *weather__get_weather_data(char* location, bool detailed, bool trim) {
+  char* url_fmt = "https://%swttr.in/%s";
+  size_t url_len;
+  
+  if (detailed) {
+    url_len = (size_t)strlen(url_fmt) + strlen(location) + 1;
+  } else {
+    url_len = (size_t)strlen(url_fmt) + strlen(location) - 1;
+  }
 
   char url[url_len];
-  snprintf(url, url_len, url_fmt, cur1, cur2, api_key);
+  if (detailed) {
+    snprintf(url, url_len, url_fmt, "v2.", location);
+  } else {
+     snprintf(url, url_len, url_fmt, "", location);
+  }
+  
+  char *response = req(url);
+    
+  if (trim) {
+    size_t len_of_response = strlen(response);
+    response[len_of_response - 54] = '\0';
+  }
+
+  return response;
+}
+
+char *weather__get_weather_data_w_format(char *location, char *format) {
+  char* url_fmt = "https://wttr.in/%s?format=%s";
+  int fmt_count = count_instances(url_fmt, "%s");
+  int url_fmt_len = strlen(url_fmt);
+  int fmt_len = strlen(format);
+  int location_len = strlen(location);
+  size_t url_len = (size_t)(url_fmt_len - fmt_count) + fmt_len + location_len + 1;
+
+  char url[url_len];
+  snprintf(url, url_len, url_fmt, location, format);
+  
+  char *response = req(url);
+  return response;
+}
+
+float currency__get_conversion_rate(const char *cur1, const char *cur2, const char* currency_api_key) {
+
+  char ***codes = currency__get_codes(currency_api_key, "cache.json");
+
+  if (!value_exist_in_2D_array(cur1, codes, 162, 2, false) 
+    || !value_exist_in_2D_array(cur2, codes, 162, 2, false)) {
+    fprintf(stderr, RED "!%s Invalid currency code, example: EUR.\n", CLEAR);
+    free_2D_string_array(codes, 162);
+    return 1;
+  }
+
+  char *url_fmt = "https://v6.exchangerate-api.com/v6/%s/pair/%s/%s";
+  size_t url_len = (size_t)strlen(url_fmt) + strlen(currency_api_key) + 1;
+
+  char url[url_len];
+  snprintf(url, url_len, url_fmt, currency_api_key, cur1, cur2);
   
   json_t *conversion_rate = get_content_from_element(url, "conversion_rate");
   float value = json_real_value(conversion_rate);
@@ -146,7 +236,8 @@ float get_conversion_rate(const char *cur1, const char *cur2, const char* api_ke
     json_decref(conversion_rate);
     return 1;
   }
-  
+
+  free_2D_string_array(codes, 162);
   json_decref(conversion_rate);
 
   return value;

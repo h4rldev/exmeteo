@@ -55,7 +55,6 @@ json_t *read_from_cache(const char *cache_name) {
 
 int write_to_json(const char *filename, json_t *json, bool free_json) {
   char* path = get_path(filename);
-  printf("path: %s", path);
 
   char *json_str = json_dumps(json, 0);
   if (! json_str) {

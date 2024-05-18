@@ -1,6 +1,10 @@
 default:
   just --list
 
+@fix_perms:
+  chmod +x scripts/build.sh
+  chmod +x scripts/clear_vgcores.sh
+
 @compile-debug name="exmeteo":
   scripts/build.sh -c {{name}} --debug
 
@@ -23,3 +27,6 @@ default:
   just compile-debug {{name}}
   just link {{name}}
   valgrind ./bin/{{name}} {{args}}
+
+@clear_cores args="":
+  scripts/clear_vgcores.sh {{args}}

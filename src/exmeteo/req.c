@@ -48,7 +48,7 @@ char* req(const char* url) {
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, "exMeteo @ libcurl-agent/1.0");
 
   response = curl_easy_perform(curl);
   if(response != CURLE_OK) {
@@ -58,7 +58,7 @@ char* req(const char* url) {
   //printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
   resp = (char*)malloc((chunk.size + 1));
   if (!resp) {
-    fprintf(stderr, "Can't allocate memory for response, exiting..");
+    fprintf(stderr, RED"!%s Can't allocate memory for response, exiting..", CLEAR);
     free(resp);
     return 0;
   }
