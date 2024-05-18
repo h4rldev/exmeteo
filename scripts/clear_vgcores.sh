@@ -60,6 +60,8 @@ print_help() {
 	echo -e "Made with ${RED}<3${CLEAR} by ${__AUTHOR__}"
 }
 
+# Delete all vgcore.* in the repo.
+
 delete() {
 	local -a FILES
 	local FILE

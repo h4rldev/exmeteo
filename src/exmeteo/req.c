@@ -1,10 +1,26 @@
 #include "req.h"
+#include "color.h"
+
+/*
+ * struct MemoryStruct
+ * char *memory;
+ * size_t size;
+ *
+ * The struct that allows allocation of memory to allow getting response.
+ */
 
 struct MemoryStruct {
   char *memory;
   size_t size;
 };
- 
+
+/*
+ * static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+ *
+ * Reallocates and writes HTTP response to memory.
+ * (No I do not know how it works, it's magic code from the CURL devs.)
+ */
+
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -27,7 +43,13 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   return realsize;
 }
 
-char* req(const char* url) {
+/*
+ * char *req(const char *url)
+ *
+ * Uses libcurl and allocates the response of a url to a char *, and returns it.
+ */
+
+char *req(const char *url) {
   CURL *curl;
   char *resp; 
   CURLcode response;

@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <curl/easy.h>
 #include <stdio.h>
-#include "color.h"
 
-char *req(const char* url);
+
+char *req(const char *url);
 
 #endif // !REQ_H_INCLUDED 

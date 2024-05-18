@@ -22,21 +22,50 @@
   #error "Unsupported Operating System, use a normal os, loser"
 #endif
 
+/*
+ * struct Pair
+ * char* first;
+ * char* second;
+ * 
+ *
+ * The struct needed for split_array to work.
+ */
+
 typedef struct {
     char* first;
     char* second;
 } Pair;
 
-void split_array(char* arr[], int size, Pair* pairs) {
+/*
+ * void split_array(char **array, int size, Pair* pairs)
+ *
+ * Splits an array in 2, populating the Pairs and allowing you to split an array of 3 or more into sets of 2 or 1.
+ */
+
+void split_array(char **array, int size, Pair* pairs) {
     int index = 0;
     for (int i = 0; i < size; i += 2) {
-        pairs[index].first = arr[i];
-        pairs[index].second = arr[i + 1];
+        pairs[index].first = array[i];
+        pairs[index].second = array[i + 1];
         index++;
     }
 }
 
-int compare_flag(int argc, char **argv, char* command_type, char *flag_list[], int flags_len, int level) {
+/*
+ * int compare_flag(int argc, char **argv, char *command_type, char **flag_list, int flags_len, int level)
+ *
+ * Compares the flags with argv and returns an int based on that value, being the index of that array where the flags are.
+ * 
+ * Usage:
+ * char *flags[2] = { "-h", "--help" };
+ * int selected_flag = compare_flag(argc, argv, "command", flags, 2, 1);
+ *
+ * if (selected_flag == 0 || selected_flag == 1) {
+ *    printf("This is help");
+ * }
+ */
+
+int compare_flag(int argc, char **argv, char *command_type, char **flag_list, int flags_len, int level) {
   if (level >= argc) {
     fprintf(stderr, RED "!%s Unknown %s, printing help text..\n\n", CLEAR, command_type);
     return 1;
@@ -52,6 +81,16 @@ int compare_flag(int argc, char **argv, char* command_type, char *flag_list[], i
   return 1;
 }
 
+/*
+ * int print_line(char* message)
+ *
+ * Prints a message over and over accross the entire terminal buffer.
+ *
+ * Usage:
+ *
+ * print_line("-");
+ */
+
 int print_line(char* message) {
   int terminal_width = get_terminal_width();
   for (int i = 0; i < terminal_width; i++) {
@@ -61,8 +100,20 @@ int print_line(char* message) {
   return 0;
 }
 
+/*
+ * int info_for_flag(const char **provided_flags, int flag_amount, const char *flags_color, const char *info, const char *info_color)
+ *  
+ * Prints out a pretty little section of each flag seperated with | followed by a newline and then the info, in colors of choice.
+ *
+ * Usage:
+ * const char *flags[2] = { "-h", "--help" };
+ * char *info = "This prints out help!";
+ *
+ * int info_for_flag(flags, 2, YELLOW, info, GREEN);
+ */
+
 int info_for_flag(
-  const char* provided_flags[], 
+  const char **provided_flags, 
   int flag_amount,
   const char *flags_color,
   const char *info,
@@ -77,12 +128,18 @@ int info_for_flag(
   return 0;
 }
 
-int print_sub_help(char ***argv, char** command, int flag_size, char* flags[], const char* help_texts[]) {
+/*
+ * int print_sub_help(char ***argv, char **command, int flag_size, char **flags, const char **help_texts)
+ *
+ * Prints out help for sub_commands, a small adjustment of the original help command.
+ */
+
+int print_sub_help(char ***argv, char **command, int flag_size, char **flags, const char **help_texts) {
   Pair subflag_pairs[flag_size/2];
 
   split_array(flags, flag_size, subflag_pairs);
 
-  printf(
+  printf( // Prints the executable, command and a large HELP.
     GREEN "%s %s%s - %sHELP\n" CLEAR, *argv[0], *command, CLEAR, GREEN 
   );
 
@@ -93,6 +150,7 @@ int print_sub_help(char ***argv, char** command, int flag_size, char* flags[], c
   
   print_line("-");
 
+  // Splits and gives info about the sub_flags
   for (int i = 0; i < flag_size/2; i++) {
     const char *split_flags[2] = { subflag_pairs[i].first, subflag_pairs[i].second }; 
     info_for_flag(split_flags, 2, GREEN, help_texts[i], YELLOW);
@@ -105,7 +163,30 @@ int print_sub_help(char ***argv, char** command, int flag_size, char* flags[], c
   return 0;
 }
 
-int print_help(char ***argv, int flag_size, char* flags[], const char* help_texts[]) {
+/*
+ * int print_help(char ***argv, int flag_size, char** flags, const char** help_texts)
+ *
+ * Prints help information based on flags and help_texts provided through params.
+ *
+ * Usage:
+ * char* flags[8] = {
+ *   "--help", "-h",     // 0-1: help
+ *   "--version", "-v",  // 2-3: version 
+ *   "--currency", "-c", // 4-5: currency
+ *   "--weather", "-w"   // 6-7: weather
+ * };
+
+ * const char* help_texts[4] = {
+ *   "Prints this message.",
+ *   "Prints program version",
+ *   "Currency conversion commands",
+ *   "Get the weather",
+ * };
+ *
+ * print_help(&argv, 8, flags, help_texts);
+ */
+
+int print_help(char ***argv, int flag_size, char** flags, const char** help_texts) {
   Pair flag_pairs[flag_size/2];
 
   split_array(flags, flag_size, flag_pairs);
@@ -134,16 +215,28 @@ int print_help(char ***argv, int flag_size, char* flags[], const char* help_text
   return 0;
 }
 
+/*
+ * int print_version(void)
+ *
+ * Pretty prints the version info of the program, gets it's data from metadata.h
+ */
 
 int print_version(void) {
   printf(GREEN "%s%s v%s%s\n" CLEAR, __NAME__, CLEAR, CYAN, __PROGRAM_VERSION__);
   return 0;
 }
 
+/*
+ * int convert(int argc, char **argv)
+ *
+ * A subfunction to currency, handles conversion.
+ */
+
 int convert(char *cur1, char *cur2, char *api_key, float amount) {
   float rate = currency__get_conversion_rate(cur1, cur2, api_key);
   float calculated_rate = amount * rate;
 
+  // Check if amount is equal to an integer cast of amount and print it as int incase it is.
   if (amount == (int)amount) {
     printf(BLUE ">%s %d %s is equal to %f %s \n", CLEAR, (int)amount, cur1, calculated_rate, cur2);
     return 0;
@@ -152,6 +245,12 @@ int convert(char *cur1, char *cur2, char *api_key, float amount) {
   printf(BLUE ">%s %f %s is equal to %f %s \n", CLEAR, amount, cur1, calculated_rate, cur2);
   return 0;
 }
+
+/*
+ * int currency(int argc, char **argv)
+ *
+ * Handles currency and it's subcommands.
+ */
 
 int currency(int argc, char **argv) {
   char *api_key = "966eb565013e92b110e1cf0d";
@@ -172,11 +271,13 @@ int currency(int argc, char **argv) {
 
   int sub_flag = compare_flag(argc, argv, "subcommand", subflags, 8, 2);
   switch (sub_flag) {
+    // --help | -h | ?
     case 0:
     case 1:
       print_sub_help(&argv, &argv[1], 8, subflags, help_texts);
       break;
 
+    // --list | -l
     case 2:
     case 3:
       printf("Current currencies are: \n");
@@ -185,6 +286,7 @@ int currency(int argc, char **argv) {
       }
       break;
   
+    // --convert | -c
     case 4:
     case 5:
       if (argc <= 5) {
@@ -194,7 +296,8 @@ int currency(int argc, char **argv) {
       
       convert(argv[3], argv[4], api_key, atof(argv[5]));
       break;
-   
+  
+    // --get | -g
     case 6:
     case 7:
       if (argc <= 4) {
@@ -221,6 +324,12 @@ int currency(int argc, char **argv) {
   free_2D_string_array(codes, 162);
   return 0;
 }
+
+/*
+ * int weather(int argc, char **argv)
+ *
+ * Handles the weather command and it's subcommands.
+ */
 
 int weather(int argc, char **argv) { 
   char* subflags[24] = {
@@ -268,6 +377,7 @@ int weather(int argc, char **argv) {
     return 0;
   }
 
+  // --get | -g
   if (sub_flag == 2 || sub_flag == 3) {
     weather_data = weather__get_weather_data(argv[3], false, true);
     puts(weather_data);
@@ -275,7 +385,8 @@ int weather(int argc, char **argv) {
     free(weather_data);
     return 0;
   }
-
+  
+  // --detailed | -d
   if (sub_flag == 4 || sub_flag == 5) {
     weather_data = weather__get_weather_data(argv[3], true, true);
     puts(weather_data);
@@ -285,53 +396,61 @@ int weather(int argc, char **argv) {
   }
   
   switch(sub_flag) {
+    // --temp | tp
     case 6:
     case 7:
       format = "%t%20%f";
       break;
-
+    
+    // --moon-phase | -mp
     case 8:
     case 9:
       format = "%m";
       fmt_string = "Current moon phase:";
       break;
 
+    // --moon-day | -md 
     case 10:
     case 11:
       format = "%M";
       fmt_string = "Current moon day:";
       break;
-    
+    // --humidity | -hu
     case 12:
     case 13:
       format = "%h";
       fmt_string = "Current humidity:";
       break;
 
+    // --wind | -w
     case 14:
     case 15:
       format = "%w";
       fmt_string = "Current wind:";
       break;
     
+    // --percipitation | -prc
     case 16:
     case 17:
       format = "%p";
       fmt_string = "Current percipitation:";
       break;
 
+    // --pressure | -pr
     case 18:
     case 19:
       format = "%P";
       fmt_string = "Current pressure:";
       break;
 
+    // --uv-index | -uv
     case 20:
     case 21:
       format = "%u";
       fmt_string = "Current UV index:";
       break;
 
+    // --time | -tm
     case 22:
     case 23:
       format = "%D%20%S%20%z%20%s%20%d%20%T%20%Z";
@@ -343,7 +462,8 @@ int weather(int argc, char **argv) {
   }
   
   weather_data = weather__get_weather_data_w_format(argv[3], format);
-  
+ 
+  // --temp | tp
   if (sub_flag == 6 || sub_flag == 7) {
     char *temps = strtok(weather_data, " ");
 
@@ -353,6 +473,7 @@ int weather(int argc, char **argv) {
     return 0;
   }
 
+  // --time | tm
   if (sub_flag == 22 || sub_flag == 23) {
     char *times[7] = {0};
     int index = 1;
@@ -377,13 +498,21 @@ int weather(int argc, char **argv) {
     return 0;
   }
 
+  // Everything else that populates fmt_string.
   printf(BLUE ">%s %s %s\n", CLEAR, fmt_string, weather_data);
 
   free(weather_data);
   return 0;
 }
 
-int init(int argc, char *argv[]) {
+/*
+ * int init(int argc, char **argv)
+ *
+ * Initializes the CLI entirely, handling help, version, currency and weather commands.
+ * Has subfunctions 
+ */
+
+int init(int argc, char **argv) {
   
   char* flags[8] = {
     "--help", "-h",     // 0-1: help
@@ -401,21 +530,25 @@ int init(int argc, char *argv[]) {
 
   int flag = compare_flag(argc, argv, "command", flags, 8, 1);
   switch (flag) {
+    // --help | -h | ?
     case 0:
     case 1:
       print_help(&argv, 8, flags, help_texts);
       break;
 
+    // --version | -v
     case 2:
     case 3:
       print_version();
       break;
 
+    // --currency | -c
     case 4:
     case 5:
       currency(argc, argv);
       break;
    
+    // --weather | -w
     case 6:
     case 7:
       weather(argc, argv);

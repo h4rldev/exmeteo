@@ -1,7 +1,18 @@
 #include "cache.h"
 #include "color.h"
 #include "file.h"
- 
+
+/*
+ * json_t read_from_cache(const char *cache_name)
+ * 
+ * Reads, and parses the json defined in %APPDATA\\exmeteo\\ or in ~/.cache/exmeteo/ 
+ * 
+ * Usage:
+ * json_t *cache_codes = read_from_cache("cache.json");
+ * char *content = json_dump(cache_codes, 0);
+ * printf("JSON content: %s", content);
+ */
+
 json_t *read_from_cache(const char *cache_name) {
   char *path = get_path(cache_name);
 
@@ -52,6 +63,17 @@ json_t *read_from_cache(const char *cache_name) {
   free(path);
   return codes;
 } 
+
+/*
+ * int write_to_json(const char *filename, json_t *json, bool free_json)
+ * 
+ * Reads, and writes json to %APPDATA\\exmeteo\\ or in ~/.cache/exmeteo/ 
+ * 
+ * Usage:
+ * if (write_to_json("cache.json", root, false) == 1) {
+ *    - Do some error handling
+ * } 
+ */
 
 int write_to_json(const char *filename, json_t *json, bool free_json) {
   char* path = get_path(filename);

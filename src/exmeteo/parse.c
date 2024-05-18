@@ -3,8 +3,17 @@
 #include "req.h"
 #include "file.h"
 #include "color.h"
-#include <stdio.h>
-#include <string.h>
+
+/*
+ * int count_instances(const char *str, const char *substr)
+ *
+ * Returns the amount of times a string containes another string.
+ *
+ * Usage:
+ * char *example = "Hello, World!";
+ * int instances = count_instances(example, "Hello");
+ * printf("%s has \"Hello\" in it %d times!\n", example, instances);
+ */
 
 int count_instances(const char *str, const char *substr) {
   int count = 0;
@@ -16,36 +25,34 @@ int count_instances(const char *str, const char *substr) {
     return count;
 }
 
-void free_2D_string_array(char ***string_list, int total_strings) {
-  for (int i = 0; i < total_strings; i++) {
+/*
+ * void free_2D_string_array(char ***array, int array_len)
+ * 
+ * Frees a 2d string array from memory by iteration.
+ */
+
+void free_2D_string_array(char ***array, int array_len) {
+  for (int i = 0; i < array_len; i++) {
     for (int j = 0; j < 2; j++) {
       //printf("Freeing array[%d][%d]\n", i, j);
-      free(string_list[i][j]);
+      free(array[i][j]);
     }
     //printf("Freeing array[%d]", i);
-    free(string_list[i]);
+    free(array[i]);
   }
-  //printf("freeing list.");
-  free(string_list);
+  //printf("freeing array.");
+  free(array);
 }
 
-void free_string_array(char **string_array, int array_len) {
-  for (int i = 0; i < array_len; i++) {
-    free(string_array[i]);
-  }
-  free(string_array);
-}
+/*
+ * bool value_exist_in_2D_array(const char *value, char ***array, int rows, int cols, bool free_array)
+ *
+ * Iterates through 2D string array and see if a string matches and of it's values.
+ * If it does, it returns true.
+ * If not, it returns false.
+ * Has a togglable bool that allows you to free the array or not, for convenience reasons.
+ */
 
-char *strremove(char *str, const char *sub) {
-    size_t len = strlen(sub);
-    if (len > 0) {
-        char *p = str;
-        while ((p = strstr(p, sub)) != 0) {
-            memmove(p, p + len, strlen(p + len) + 1);
-        }
-    }
-    return str;
-}
 bool value_exist_in_2D_array(const char *value, char ***array, int rows, int cols, bool free_array) {
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
@@ -65,6 +72,12 @@ bool value_exist_in_2D_array(const char *value, char ***array, int rows, int col
 
   return false;
 }
+
+/*
+ * char ***get_2D_array_from_json(json_t *json)
+ *
+ * Parses and iterates a json array object and allocates each value into a normal 2D array.
+ */
 
 char ***get_2D_array_from_json(json_t *json) {
   int size = json_array_size(json);
@@ -102,6 +115,17 @@ char ***get_2D_array_from_json(json_t *json) {
   return array;
 }
 
+/*
+ * json_t *get_content_from_element(const char *url, char *element)
+ *
+ * Sends a request and gets the content from json element.
+ *
+ * Usage:
+ * json_t *example = get_content_from_element("https://example.org/api", "example");
+ * char *json_string = json_dump(example, 0);
+ * printf("json: %s\n", json_string);
+ */
+
 json_t *get_content_from_element(const char *url, char *element) {
 
   char *response = req(url);
@@ -124,6 +148,66 @@ json_t *get_content_from_element(const char *url, char *element) {
   return selected_element;
 }
 
+
+/*
+ * char *weather__get_weather_data(char *location, bool detailed, bool trim)
+ *
+ * Gets default weather data for a location, detailed or not, togglable trim of the self promo.
+ */
+
+char *weather__get_weather_data(char *location, bool detailed, bool trim) {
+  char* url_fmt = "https://%swttr.in/%s";
+  size_t url_len;
+  
+  if (detailed) {
+    url_len = (size_t)strlen(url_fmt) + strlen(location) + 1;
+  } else {
+    url_len = (size_t)strlen(url_fmt) + strlen(location) - 1;
+  }
+
+  char url[url_len];
+  if (detailed) {
+    snprintf(url, url_len, url_fmt, "v2.", location);
+  } else {
+     snprintf(url, url_len, url_fmt, "", location);
+  }
+  
+  char *response = req(url);
+    
+  if (trim) {
+    size_t len_of_response = strlen(response);
+    response[len_of_response - 54] = '\0';
+  }
+
+  return response;
+}
+
+/*
+ * char *weather__get_weather_data_w_format(char *location, char *format) 
+ *
+ * Gets weather data but allows filtering through a format string example: %w
+ */
+
+char *weather__get_weather_data_w_format(char *location, char *format) {
+  char* url_fmt = "https://wttr.in/%s?format=%s";
+  int fmt_count = count_instances(url_fmt, "%s");
+  int url_fmt_len = strlen(url_fmt);
+  int fmt_len = strlen(format);
+  int location_len = strlen(location);
+  size_t url_len = (size_t)(url_fmt_len - fmt_count) + fmt_len + location_len + 1;
+
+  char url[url_len];
+  snprintf(url, url_len, url_fmt, location, format);
+  
+  char *response = req(url);
+  return response;
+}
+
+/*
+ * char ***currency__get_codes(const char *currency_api_key, const char *filename)
+ *
+ * Gets the codes and converts it to 2D array and later returns it.
+ */
 
 char ***currency__get_codes(const char *currency_api_key, const char *filename) {
   char *path = get_path(filename);
@@ -169,49 +253,13 @@ char ***currency__get_codes(const char *currency_api_key, const char *filename) 
   return get_2D_array_from_json(codes);
 }
 
-char *weather__get_weather_data(char* location, bool detailed, bool trim) {
-  char* url_fmt = "https://%swttr.in/%s";
-  size_t url_len;
-  
-  if (detailed) {
-    url_len = (size_t)strlen(url_fmt) + strlen(location) + 1;
-  } else {
-    url_len = (size_t)strlen(url_fmt) + strlen(location) - 1;
-  }
+/*
+ * float currency__get_conversion_rate(const char *cur1, const char *cur2, const char *currency_api_key)
+ *
+ * Gets the conversion rate of one currency to another through currency codes.
+ */
 
-  char url[url_len];
-  if (detailed) {
-    snprintf(url, url_len, url_fmt, "v2.", location);
-  } else {
-     snprintf(url, url_len, url_fmt, "", location);
-  }
-  
-  char *response = req(url);
-    
-  if (trim) {
-    size_t len_of_response = strlen(response);
-    response[len_of_response - 54] = '\0';
-  }
-
-  return response;
-}
-
-char *weather__get_weather_data_w_format(char *location, char *format) {
-  char* url_fmt = "https://wttr.in/%s?format=%s";
-  int fmt_count = count_instances(url_fmt, "%s");
-  int url_fmt_len = strlen(url_fmt);
-  int fmt_len = strlen(format);
-  int location_len = strlen(location);
-  size_t url_len = (size_t)(url_fmt_len - fmt_count) + fmt_len + location_len + 1;
-
-  char url[url_len];
-  snprintf(url, url_len, url_fmt, location, format);
-  
-  char *response = req(url);
-  return response;
-}
-
-float currency__get_conversion_rate(const char *cur1, const char *cur2, const char* currency_api_key) {
+float currency__get_conversion_rate(const char *cur1, const char *cur2, const char *currency_api_key) {
 
   char ***codes = currency__get_codes(currency_api_key, "cache.json");
 

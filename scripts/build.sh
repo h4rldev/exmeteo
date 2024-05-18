@@ -89,6 +89,8 @@ print_help() {
 	echo -e "Made with ${RED}<3${CLEAR} by ${__AUTHOR__}"
 }
 
+# iterates over every file in src/exmeteo/ and compiles them, then compiles src/main.c, moving them to out/
+
 compile() {
 	local -a C_FILES
 
@@ -132,6 +134,8 @@ compile() {
 	echo -e "${GREEN}✓${CLEAR} Compiled ${CYAN}${TRIMMED_C_FILENAMES[@]}${CLEAR} & ${CYAN}main${CLEAR} successfully"
 }
 
+# links all object files in out/ to an executable in /bin
+
 link() {
 	local RELINK
 	local -a OBJECTS
@@ -172,6 +176,8 @@ link() {
 	popd >/dev/null
 }
 
+# removes dangling object files that shouldn't be there, used to be required, not that much as of lately though.
+
 clean_dangling() {
 	local DIR1
 	local DIR2
@@ -197,6 +203,8 @@ clean_dangling() {
 	# Cleanup
 	rm temp_dir1_files.txt temp_dir2_files.txt extra_o_files.txt
 }
+
+# cleans both /out && /bin
 
 clean() {
 	local CLEAN
