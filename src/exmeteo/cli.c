@@ -233,8 +233,12 @@ int print_version(void) {
  */
 
 int convert(char *cur1, char *cur2, char *api_key, float amount) {
-  float rate = currency__get_conversion_rate(cur1, cur2, api_key);
-  float calculated_rate = amount * rate;
+  float conversion_rate = currency__get_conversion_rate(cur1, cur2, api_key);
+  if (!conversion_rate) {
+    fprintf(stderr, RED "!%s Failed to get conversion rate!", CLEAR);
+    return 1;
+  }
+  float calculated_rate = amount * conversion_rate;
 
   // Check if amount is equal to an integer cast of amount and print it as int incase it is.
   if (amount == (int)amount) {
@@ -304,6 +308,14 @@ int currency(int argc, char **argv) {
         fprintf(stderr, RED "!%s You need to specify currency code!\n Example:%s %s %s %s USD EUR\n" CLEAR, CLEAR, CYAN, argv[0], argv[1], argv[2]);
         break;
       }
+      
+      float conversion_rate = currency__get_conversion_rate(argv[3], argv[4], api_key);
+      if (!conversion_rate) {
+        fprintf(stderr, RED "!%s Failed to get conversion rate!", CLEAR);
+        break;
+      }
+
+
       printf(
         BLUE ">%s The conversion rate of %s%s%s to %s%s%s is: %s%f\n" 
         CLEAR, CLEAR, GREEN, 
@@ -311,7 +323,7 @@ int currency(int argc, char **argv) {
         CLEAR, GREEN, 
         argv[4], 
         CLEAR, CYAN, 
-        currency__get_conversion_rate(argv[3], argv[4], api_key)
+        conversion_rate        
       );
       break;
 
@@ -380,6 +392,11 @@ int weather(int argc, char **argv) {
   // --get | -g
   if (sub_flag == 2 || sub_flag == 3) {
     weather_data = weather__get_weather_data(argv[3], false, true);
+    if (!weather_data) {
+      fprintf(stderr, RED "!%s Failed to get weather data!", CLEAR);
+      free(weather_data);
+      return 1;
+    }
     puts(weather_data);
       
     free(weather_data);
@@ -389,6 +406,11 @@ int weather(int argc, char **argv) {
   // --detailed | -d
   if (sub_flag == 4 || sub_flag == 5) {
     weather_data = weather__get_weather_data(argv[3], true, true);
+    if (!weather_data) {
+      fprintf(stderr, RED "!%s Failed to get weather data!", CLEAR);
+      free(weather_data);
+      return 1;
+    }
     puts(weather_data);
       
     free(weather_data); 
@@ -462,6 +484,12 @@ int weather(int argc, char **argv) {
   }
   
   weather_data = weather__get_weather_data_w_format(argv[3], format);
+  if (!weather_data) {
+      fprintf(stderr, RED "!%s Failed to get weather data!", CLEAR);
+      free(weather_data);
+      return 1;
+  }
+
  
   // --temp | tp
   if (sub_flag == 6 || sub_flag == 7) {

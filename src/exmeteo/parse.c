@@ -283,7 +283,7 @@ float currency__get_conversion_rate(const char *cur1, const char *cur2, const ch
     || !value_exist_in_2D_array(cur2, codes, 162, 2, false)) {
     fprintf(stderr, RED "!%s Invalid currency code, example: EUR.\n", CLEAR);
     free_2D_string_array(codes, 162);
-    return 1;
+    return 0;
   }
 
   char *url_fmt = "https://v6.exchangerate-api.com/v6/%s/pair/%s/%s";
@@ -298,7 +298,7 @@ float currency__get_conversion_rate(const char *cur1, const char *cur2, const ch
   if (isnan(value)) {
     fprintf(stderr, "Failed to retrieve float value\n");
     json_decref(conversion_rate);
-    return 1;
+    return 0;
   }
 
   free_2D_string_array(codes, 162);
