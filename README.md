@@ -4,8 +4,8 @@
 ![[OpenSSF Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/h4rldev/exmeteo)](https://api.securityscorecards.dev/projects/github.com/h4rldev/exmeteo/badge?style=flat-square)
 
 
-> [!CAUTION]
-> This project is in very early dev and is in no way useful yet!
+> [!NOTE]
+> This project is only a CLI by now, GUI will possibly never be implemented.
 
 A weather & currency converter app written in C.
 
