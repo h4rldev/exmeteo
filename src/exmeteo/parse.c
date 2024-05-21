@@ -129,6 +129,11 @@ char ***get_2D_array_from_json(json_t *json) {
 json_t *get_content_from_element(const char *url, char *element) {
 
   char *response = req(url);
+  if (!response) {
+    fprintf(stderr, RED "!%s Failed to get response data (Is the site up? / Do you have a internet connection?), returning 0.\n", CLEAR);
+    free(response);
+    return 0;
+  }
   size_t response_length = (size_t)strlen(response) + 1;
 
   json_t *json = json_loads(response, response_length, 0); // this leaks 381 bytes.
@@ -173,6 +178,11 @@ char *weather__get_weather_data(char *location, bool detailed, bool trim) {
   }
   
   char *response = req(url);
+  if (!response) {
+    fprintf(stderr, RED "!%s Failed to get response data (Is the site up? / Do you have a internet connection?), returning 0.\n", CLEAR);
+    free(response);
+    return 0;
+  }
     
   if (trim) {
     size_t len_of_response = strlen(response);
@@ -200,6 +210,12 @@ char *weather__get_weather_data_w_format(char *location, char *format) {
   snprintf(url, url_len, url_fmt, location, format);
   
   char *response = req(url);
+  if (!response) {
+    fprintf(stderr, RED "!%s Failed to get response data (Is the site up? / Do you have a internet connection?), returning 0.\n", CLEAR);
+    free(response);
+    return 0;
+  }
+
   return response;
 }
 
