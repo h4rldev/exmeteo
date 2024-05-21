@@ -36,6 +36,7 @@ json_t *read_from_cache(const char *cache_name) {
   size_t amount_read = fread(buffer, 1, fsize, cache_file);
   if (amount_read < 1) {
     fprintf(stderr, RED "!%s Failed to read file properly.\n", CLEAR);
+    fclose(cache_file);
     free(buffer);
     free(path);
     return 0;

@@ -64,6 +64,7 @@ char *req(const char *url) {
 
   if (!curl) {
     fprintf(stderr, RED "!%s curl couldn't initialize, exiting..", CLEAR);
+    free(chunk.memory);
     return 0;
   }
     
