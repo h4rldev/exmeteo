@@ -30,3 +30,7 @@ default:
 
 @clear_cores args="":
   scripts/clear_vgcores.sh {{args}}
+
+@install name="exmeteo":
+  just build {{name}}
+  sudo mv bin/{{name}} /usr/bin/
