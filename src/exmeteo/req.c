@@ -76,6 +76,7 @@ char *req(const char *url) {
   response = curl_easy_perform(curl);
   if(response != CURLE_OK) {
     fprintf(stderr, RED "!%s curl_easy_perform() failed: %s\n", CLEAR, curl_easy_strerror(response));
+    free(chunk.memory);
     return 0; 
   }
   //printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
