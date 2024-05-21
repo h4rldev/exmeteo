@@ -510,7 +510,6 @@ int weather(int argc, char **argv) {
     token = strtok(weather_data, " ");
     times[0] = token;
     while(token != 0) {
-      printf("%s\n", token);
       token = strtok(NULL, " ");
       times[index] = token;
       index++;
