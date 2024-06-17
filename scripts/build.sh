@@ -49,7 +49,7 @@ SRC="$(pwd)/src"
 OUT="$(pwd)/out"
 BIN="$(pwd)/bin"
 DIR="${SRC}/exmeteo"
-INCLUDE="$(pwd)/include"
+#INCLUDE="$(pwd)/include"
 COLOR=true
 
 if ${COLOR}; then
@@ -73,7 +73,7 @@ CFLAGS="-O3"
 LINKER_FLAGS="-lcurl -ljansson"
 
 if [[ ! -d ${OUT} ]]; then
-	mkdir ${OUT}
+	mkdir "${OUT}"
 fi
 
 print_help() {
@@ -111,7 +111,7 @@ compile() {
 		echo -e "${BLUE}>${CLEAR} Compiling: ${CYAN}${C_FILES[${i}]}${CLEAR}.."
 		if [[ -f "${OUT}/${TRIMMED_C_FILENAME}.o" ]]; then
 			echo -ne "${YELLOW}!${CLEAR} ${CYAN}${TRIMMED_C_FILENAME}.o${CLEAR} seems to already exist, you wanna recompile it? [${GREEN}Y${CLEAR}/${RED}n${CLEAR}]: "
-			read RECOMPILE
+			read -r RECOMPILE
 			if [[ ! ${RECOMPILE} =~ [Nn] ]]; then
 				if ${DEBUG}; then
 					gcc "${CFLAGS}" -ggdb -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
@@ -131,7 +131,7 @@ compile() {
 	echo -e "${BLUE}>${CLEAR} Compiling: main.c.."
 	gcc -O3 "${CFLAGS}" -c "${SRC}/main.c" -o "${OUT}/main.o"
 
-	echo -e "${GREEN}✓${CLEAR} Compiled ${CYAN}${TRIMMED_C_FILENAMES[@]}${CLEAR} & ${CYAN}main${CLEAR} successfully"
+	echo -e "${GREEN}✓${CLEAR} Compiled ${CYAN}${TRIMMED_C_FILENAMES[*]}${CLEAR} & ${CYAN}main${CLEAR} successfully"
 }
 
 # links all object files in out/ to an executable in /bin
@@ -143,7 +143,7 @@ link() {
 	local -a TRIMMED_FILES
 
 	if [[ ! -d ${BIN} ]]; then
-		mkdir ${BIN}
+		mkdir "${BIN}"
 	fi
 
 	if [[ -n ${1} ]]; then
@@ -154,26 +154,26 @@ link() {
 	fi
 
 	mapfile -t OBJECTS < <(find "${OUT}" -type f -name "*.o")
-	TRIMMED_FILES="${OBJECTS[@]##*/}"
+	TRIMMED_FILES="${OBJECTS[*]##*/}"
 
-	pushd ${OUT} >/dev/null
+	pushd "${OUT}" >/dev/null || echo "Failed to pushd" && exit 1
 
 	echo -e "${BLUE}>${CLEAR} Linking: ${CYAN}${TRIMMED_FILES[*]}${CLEAR}.."
 
 	if [[ -f "${BIN}/${EXECUTABLE_NAME}" ]]; then
 		echo -ne "${YELLOW}!${CLEAR} ${CYAN}${EXECUTABLE_NAME}${CLEAR} seems to already exist, you wanna relink it? [${GREEN}Y${CLEAR}/${RED}n${CLEAR}]: "
-		read RELINK
+		read -r RELINK
 		if [[ ! ${RELINK} =~ [Nn] ]]; then
-			gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
+			gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" "${TRIMMED_FILES[*]}" "${LINKER_FLAGS}"
 			echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
 		fi
 	else
-		gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
+		gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" "${TRIMMED_FILES[*]}" "${LINKER_FLAGS}"
 		echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
 
 	fi
 
-	popd >/dev/null
+	popd >/dev/null || echo "Failed to popd" && exit 1
 }
 
 # removes dangling object files that shouldn't be there, used to be required, not that much as of lately though.
@@ -181,7 +181,6 @@ link() {
 clean_dangling() {
 	local DIR1
 	local DIR2
-	local FILE
 	local LINE
 
 	DIR1=${DIR}
@@ -211,10 +210,10 @@ clean() {
 
 	echo -e "${RED}!${CLEAR} Cleaning ${CYAN}${OUT}${CLEAR} & ${CYAN}${BIN}${CLEAR}."
 	echo -ne "${RED}!${CLEAR} You sure you want to proceed? [${GREEN}y${CLEAR}/${RED}N${CLEAR}]: "
-	read CLEAN
+	read -r CLEAN
 	if [[ ${CLEAN} =~ [Nn] ]]; then
-		rm -fr "${OUT}/*"
-		rm -fr "${BIN}/*"
+		rm -fr "${OUT:?}/*"
+		rm -fr "${BIN:?}/*"
 		echo -e "${GREEN}✓${CLEAR} Cleaned ${CYAN}${OUT}${CLEAR} & ${CYAN}${BIN}${CLEAR} successfully."
 	else
 		echo -e "${GREEN}✓${CLEAR} Cancelled."
@@ -227,12 +226,12 @@ case $1 in
 	;;
 "-l" | "--link")
 	clean_dangling
-	link $2
+	link "${2}"
 	;;
 "-d" | "--delete" | "--clean")
 	clean
 	;;
-* | "--help" | "-h" | "-?")
-	print_help ${@}
+"--help" | "-h" | "-?" | *)
+	print_help "${@}"
 	;;
 esac
