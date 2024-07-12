@@ -121,15 +121,15 @@ compile() {
 			fi
 		else
 			if ${DEBUG}; then
-				gcc "${CFLAGS}" -ggdb -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+				gcc ${CFLAGS} -ggdb -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
 			else
-				gcc -O3 ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
+				gcc ${CFLAGS} -c "${C_FILES[${i}]}" -o "${OUT}/${TRIMMED_C_FILENAME}.o"
 			fi
 		fi
 	done
 
 	echo -e "${BLUE}>${CLEAR} Compiling: main.c.."
-	gcc -O3 "${CFLAGS}" -c "${SRC}/main.c" -o "${OUT}/main.o"
+	gcc "${CFLAGS}" -c "${SRC}/main.c" -o "${OUT}/main.o"
 
 	echo -e "${GREEN}✓${CLEAR} Compiled ${CYAN}${TRIMMED_C_FILENAMES[*]}${CLEAR} & ${CYAN}main${CLEAR} successfully"
 }
@@ -164,11 +164,11 @@ link() {
 		echo -ne "${YELLOW}!${CLEAR} ${CYAN}${EXECUTABLE_NAME}${CLEAR} seems to already exist, you wanna relink it? [${GREEN}Y${CLEAR}/${RED}n${CLEAR}]: "
 		read -r RELINK
 		if [[ ! ${RELINK} =~ [Nn] ]]; then
-			gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" "${TRIMMED_FILES[*]}" "${LINKER_FLAGS}"
+			gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
 			echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
 		fi
 	else
-		gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" "${TRIMMED_FILES[*]}" "${LINKER_FLAGS}"
+		gcc ${CFLAGS} -o "${BIN}/${EXECUTABLE_NAME}" ${TRIMMED_FILES[*]} ${LINKER_FLAGS}
 		echo -e "${GREEN}✓${CLEAR} Linked ${CYAN}${TRIMMED_FILES}${CLEAR} successfully"
 
 	fi
